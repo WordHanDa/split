@@ -19,8 +19,10 @@ const ShowRate = () => {  // ✅ Ensure the function starts with an uppercase le
         <div>
             <button onClick={getRate}>Show Rate</button>
             <ul>
-                {rateList.map((rate,index) => (
-                    <li key={index}>{rate.rate_id}spot_rate: {rate.spot_rate} cash_rate: {rate.cash_rate}</li>
+                {rateList.map((rate, index) => (
+                    <li key={index}>
+                        {rate.rate_id} spot_rate: {rate.spot_rate} cash_rate: {rate.cash_rate}
+                    </li>
                 ))}
             </ul>
         </div>
