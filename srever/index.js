@@ -3,8 +3,8 @@ const mysql = require('mysql');
 const cors = require('cors'); // ✅ Import CORS
 
 const app = express();
-app.use(cors()); // ✅ Allow all origins
 app.use(express.json());
+app.use(cors()); // ✅ Allow frontend to access backend
 
 const db = mysql.createConnection({
     host: "127.0.0.1",
@@ -25,23 +25,21 @@ db.connect((err) => {
 app.get('/USER', (req, res) => {
     db.query("SELECT * FROM `USER`", (err, results) => {
         if (err) {
-            console.error("Database query error:", err);
-            return res.status(500).json({ error: "Internal server error" });
+            res.status(500).json({ error: err });
+        } else {
+            res.json(results);
         }
-        res.json(results);
     });
 });
-
 app.get('/RATE', (req, res) => {
     db.query("SELECT * FROM `RATE`", (err, results) => {
         if (err) {
-            console.error("Database query error:", err);
-            return res.status(500).json({ error: "Internal server error" });
+            res.status(500).json({ error: err });
+        } else {
+            res.json(results);
         }
-        res.json(results);
     });
 });
-
 app.listen(3002, () => {
     console.log('OK, server is running on port 3002');
 });

@@ -1,34 +1,42 @@
-import "./App.css";
+import './App.css';
 import { useState } from "react";
-import Axios from "axios"; // ✅ Make sure this is installed
-
+import Axios from "axios";
+let hostname = "http://mac-mini.local:3002";
 function App() {
-  const [name, setName] = useState("");
-  const [userList, setUserList] = useState([]);
+  const [employeeList, setEmployeeList] = useState([]);
+  const [rateList, setRateList] = useState([]);
 
-  const displayInfo = () => {
-    console.log(name);
+  const getEmployee = () => {
+    Axios.get(hostname + "/USER", { timeout: 5000 })
+    .then((response) => {
+      console.log(response.data);
+      setEmployeeList(response.data);
+    })
+    .catch((error) => console.error("Error fetching data:", error));
   };
 
-  const getUser = () => {
-    Axios.get("http://localhost:3002/USER").then((response) => {
-      console.log(response.data); // ✅ Log only the data
-      setUserList(response.data); // ✅ Store the fetched data in state
-    }).catch((error) => {
-      console.error("Error fetching users:", error);
-    });
+  const getRate = () => {
+    Axios.get(hostname + "/RATE", { timeout: 5000 })
+    .then((response) => {
+      console.log(response.data);
+      setRateList(response.data);
+    })
+    .catch((error) => console.error("Error fetching data:", error));
   };
 
   return (
     <div className="App">
-      <input type="text" onChange={(e) => setName(e.target.value)} />
-      <button onClick={displayInfo}>ADD</button>
-      <button onClick={getUser}>Show USER</button>
-
-      {/* Display employee list */}
+      <button onClick={getEmployee}>Show USER</button>
       <ul>
-        {userList.map((user) => (
-          <li key={user.user_id}>{user.user_name}</li>
+        {employeeList.map((employee, index) => (
+          <li key={index}>{employee.user_name}</li> // ✅ Display user_name correctly
+        ))}
+      </ul>
+
+      <button onClick={getRate}>Show RATE</button>
+      <ul>
+        {rateList.map((rate) => (
+          <li index={rate.rate_id}>spot_rate:{rate.spot_rate} cash_rate:{rate.cash_rate}</li> // ✅ Display user_name correctly
         ))}
       </ul>
     </div>
