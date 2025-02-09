@@ -1,10 +1,10 @@
 const express = require('express');
 const mysql = require('mysql');
-const cors = require('cors'); // ✅ Import CORS
+const cors = require('cors');
 
 const app = express();
 app.use(express.json());
-app.use(cors()); // ✅ Allow frontend to access backend
+app.use(cors());
 
 const db = mysql.createConnection({
     host: "127.0.0.1",
@@ -31,6 +31,27 @@ app.get('/USER', (req, res) => {
         }
     });
 });
+
+app.post('/createUser', (req, res) => {
+    const name = req.body.name;
+    
+    if (!name || name.trim() === "") {
+        return res.status(400).json({ error: "user_name cannot be empty" });
+    }
+
+    db.query(
+        "INSERT INTO USER (user_name) VALUES (?)",
+        [name],
+        (err, result) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                return res.status(500).json({ error: "Database error" });
+            }
+            res.json({ message: "User inserted successfully", result });
+        }
+    );
+});
+
 app.get('/RATE', (req, res) => {
     db.query("SELECT * FROM `RATE`", (err, results) => {
         if (err) {
