@@ -31,8 +31,8 @@ if response.status_code == 200:
                 print(f"Column {i}: {cell.get_text(strip=True)}")
 
             # 正確對應即期買入和現金買入匯率
-            spot_rate_text = cells[4].get_text(strip=True)  # 即期買入匯率
-            cash_rate_text = cells[2].get_text(strip=True)  # 現金買入匯率
+            spot_rate_text = cells[4].get_text(strip=True)  # 即期賣出匯率
+            cash_rate_text = cells[2].get_text(strip=True)  # 現金賣出匯率
 
             # 解析匯率數據
             def parse_rate(rate_text):
