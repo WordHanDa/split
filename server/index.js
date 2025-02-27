@@ -156,7 +156,7 @@ app.get('/YOUR_RATE', (req, res) => {
 });
 
 app.post('/createBill', (req, res) => {
-    const { bill_name, amount, user_id, group_id, method, note, create_time, rate_id, create_card, your_rate_id } = req.body;
+    const { bill_name, amount, user_id, group_id, method, note, create_time, rate_id, credit_card, your_rate_id } = req.body;
 
     if (!bill_name || !amount || !user_id || !group_id || !method || !create_time) {
         return res.status(400).json({ error: "All fields are required" });
