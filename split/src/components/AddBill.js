@@ -23,7 +23,6 @@ const AddBill = () => {
             try {
                 const parsedGroup = JSON.parse(savedGroup);
                 setGroupId(parsedGroup.group_id);
-                console.log("Group ID:", parsedGroup.group_id); // 添加這行來檢查 groupId
 
                 // 獲取與該群組 ID 對應的用戶列表
                 Axios.get(`${hostname}/getUsersByGroupId`, {
@@ -57,36 +56,55 @@ const AddBill = () => {
         // 生成符合 MySQL 格式的日期時間值
         const createTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-        Axios.post(hostname + "/createBill", {  
-          bill_name: billName,
-          amount: parseFloat(amount),
-          user_id: parseInt(userId, 10), // 確保 user_id 是一個整數
-          group_id: parseInt(groupId, 10), // 確保 group_id 是一個整數
-          method: method,
-          note: note,
-          create_time: createTime, // 使用符合 MySQL 格式的日期時間值
-          rate_id: 1, // 假設匯率 ID 為 1，你可以根據實際情況修改
-          credit_card: creditCard ? 1 : 0, // 根據是否勾選信用卡來設定值
-          your_rate_id: 1 // 假設你的匯率 ID 為 1，你可以根據實際情況修改
-        }, {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        })
-        .then(() => {
-          console.log("Bill added successfully");
-          setBillName("");  // Clear input after submission
-          setAmount("");  // Clear input after submission
-          setMethod("");  // Clear input after submission
-          setNote("");  // Clear input after submission
-          setUserId("");  // Clear input after submission
-          setCreditCard(false);  // Clear checkbox after submission
-          toast.success("Bill added successfully!");  // Show success notification
-        })
-        .catch((error) => {
-          console.error("Error adding bill:", error);
-          toast.error("Error adding bill");  // Show error notification
-        });
+        const createBillRequest = (rateId) => {
+            Axios.post(hostname + "/createBill", {  
+              bill_name: billName,
+              amount: parseFloat(amount),
+              user_id: parseInt(userId, 10), // 確保 user_id 是一個整數
+              group_id: parseInt(groupId, 10), // 確保 group_id 是一個整數
+              method: method,
+              note: note,
+              create_time: createTime, // 使用符合 MySQL 格式的日期時間值
+              rate_id: rateId, // 使用獲取的 rate_id
+              credit_card: creditCard ? 1 : 0, // 根據是否勾選信用卡來設定值
+              your_rate_id: 1 // 假設你的匯率 ID 為 1，你可以根據實際情況修改
+            }, {
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            })
+            .then(() => {
+              console.log("Bill added successfully");
+              setBillName("");  // Clear input after submission
+              setAmount("");  // Clear input after submission
+              setMethod("");  // Clear input after submission
+              setNote("");  // Clear input after submission
+              setUserId("");  // Clear input after submission
+              setCreditCard(false);  // Clear checkbox after submission
+              toast.success("Bill added successfully!");  // Show success notification
+            })
+            .catch((error) => {
+              console.error("Error adding bill:", error);
+              toast.error("Error adding bill");  // Show error notification
+            });
+        };
+
+        if (creditCard) {
+            // 如果勾選了信用卡，先去撈取最後一筆 rate_id
+            Axios.get(`${hostname}/RATE`)
+                .then(response => {
+                    const rateId = response.data[0].rate_id;
+                    createBillRequest(rateId);
+                    console.log("Rate ID:", rateId);
+                })
+                .catch(error => {
+                    console.error("Error fetching rate:", error);
+                    toast.error("Error fetching rate");  // Show error notification
+                });
+        } else {
+            // 如果沒有勾選信用卡，使用預設的 rate_id
+            createBillRequest(1);
+        }
     };
 
     return (
