@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Axios from 'axios';
 
-let hostname = "http://mac-mini.local:3002";
+let hostname = "http://macbook-pro.local:3002";
 
 const AddGroupUser = ({ addUser }) => {
     const [users, setUsers] = useState([]);

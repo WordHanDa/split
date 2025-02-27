@@ -2,7 +2,7 @@ import { useState } from "react";
 import Axios from "axios";
 import AddGroupUser from './AddGroupUser';
 
-let hostname = "http://mac-mini.local:3002";
+let hostname = "http://macbook-pro.local:3002";
 
 const ShowGroup = () => {  // ✅ Ensure the function starts with an uppercase letter
     const [groupList, setGroupList] = useState([]);

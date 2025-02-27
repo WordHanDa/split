@@ -76,10 +76,10 @@ if response.status_code == 200:
                 cursor.execute("ALTER TABLE RATE ADD COLUMN IF NOT EXISTS rate_id INT AUTO_INCREMENT PRIMARY KEY FIRST;")
                 connect_db.commit()
                 sql = """
-                INSERT INTO RATE (cash_rate, spot_rate, your_rate, date)
-                VALUES (%s, %s, %s, %s)
+                INSERT INTO RATE (cash_rate, spot_rate, date)
+                VALUES (%s, %s, %s)
                 """
-                cursor.execute(sql, (cash_rate_int, spot_rate_int, None, current_datetime))
+                cursor.execute(sql, (cash_rate_int, spot_rate_int, current_datetime))
                 connect_db.commit()
                 print("✅ 日圓匯率已成功插入資料庫！")
 

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Axios from "axios";
 
-let hostname = "http://mac-mini.local:3002";
+let hostname = "http://macbook-pro.local:3002";
 
 const AddGroup = () => {  // ✅ Capitalized component name
     const [groupName, setGroupName] = useState(""); // ✅ Moved inside function
