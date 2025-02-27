@@ -42,8 +42,8 @@ const ShowGroup = ({ onGroupSelect }) => {
             <ul>
                 {groupList.map((group) => (
                     <li key={group.group_id} onClick={() => {
-                        setSelectedGroup(group.group_name);
-                        onGroupSelect(group.group_name);
+                        setSelectedGroup(group);
+                        onGroupSelect(group); // 傳遞整個群組物件
                     }}>
                         {group.group_name}
                     </li>

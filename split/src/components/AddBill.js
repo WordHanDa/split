@@ -15,25 +15,40 @@ const AddBill = () => {
 
     useEffect(() => {
         // 從 cookies 中讀取選擇的群組 ID
-        const savedGroupId = Cookies.get('selectedGroupId');
-        if (savedGroupId) {
-            setGroupId(savedGroupId);
+        const savedGroup = Cookies.get('selectedGroup');
+        if (savedGroup) {
+            try {
+                const parsedGroup = JSON.parse(savedGroup);
+                setGroupId(parsedGroup.group_id);
+                console.log("Group ID:", parsedGroup.group_id); // 添加這行來檢查 groupId
+            } catch (error) {
+                console.error("Error parsing saved group from cookies:", error);
+            }
         }
     }, []);
 
     const addBill = () => {
+        console.log("Bill Name:", billName);
+        console.log("Amount:", amount);
+        console.log("Method:", method);
+        console.log("Group ID:", groupId);
+
         if (!billName.trim() || !amount.trim() || !method.trim() || !groupId) {
             toast.error("All fields are required");
             return;
         }
+
+        // 生成符合 MySQL 格式的日期時間值
+        const createTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
         Axios.post(hostname + "/createBill", {  
           bill_name: billName,
           amount: parseFloat(amount),
           user_id: 1, // 假設用戶 ID 為 1，你可以根據實際情況修改
-          group_id: groupId,
+          group_id: parseInt(groupId, 10), // 確保 group_id 是一個整數
           method: method,
           note: note,
-          create_time: new Date().toISOString(),
+          create_time: createTime, // 使用符合 MySQL 格式的日期時間值
           rate_id: 1, // 假設匯率 ID 為 1，你可以根據實際情況修改
           create_card: 1, // 假設創建卡片 ID 為 1，你可以根據實際情況修改
           your_rate_id: 1 // 假設你的匯率 ID 為 1，你可以根據實際情況修改
@@ -66,7 +81,7 @@ const AddBill = () => {
                 placeholder="Enter bill name"
             />
             <input 
-                type="text" 
+                type="number" 
                 value={amount} 
                 onChange={(event) => setAmount(event.target.value)} 
                 placeholder="Enter amount"

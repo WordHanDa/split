@@ -13,15 +13,22 @@ const App = () => {
     useEffect(() => {
         // 從 cookies 中讀取選擇的群組
         const savedGroup = Cookies.get('selectedGroup');
-        if (savedGroup) {
-            setSelectedGroup(savedGroup);
+        console.log("Saved Group from Cookies:", savedGroup); // 新增這行來檢查 cookies 中的值
+        try {
+            if (savedGroup) {
+                const parsedGroup = JSON.parse(savedGroup);
+                console.log("Parsed Group ID:", parsedGroup.group_id); // 檢查解析後的 group_id
+                setSelectedGroup(parsedGroup);
+            }
+        } catch (error) {
+            console.error("Error parsing saved group from cookies:", error);
         }
     }, []);
 
     const handleGroupSelect = (group) => {
         setSelectedGroup(group);
         // 將選擇的群組存儲到 cookies 中
-        Cookies.set('selectedGroup', group, { expires: 7 }); // 7 天過期
+        Cookies.set('selectedGroup', JSON.stringify(group), { expires: 7 }); // 7 天過期
     };
 
     return (
@@ -31,9 +38,13 @@ const App = () => {
                     <button onClick={() => window.location.href = '/group'}>Group</button>
                     <button onClick={() => window.location.href = '/rate'}>Rate</button>
                     <button onClick={() => window.location.href = '/user'}>User</button>
-                    <button onClick={() => window.location.href = '/bill'}>Bill</button> {/* 添加 Bill 按鈕 */}
+                    <button onClick={() => window.location.href = '/bill'}>Bill</button>
                 </nav>
-                {selectedGroup && <div>Current Group: {selectedGroup}</div>}
+                {selectedGroup && (
+                    <div>
+                        <div>{selectedGroup.group_name}</div>
+                    </div>
+                )}
                 <Routes>
                     <Route path="/group" element={<GroupPage onGroupSelect={handleGroupSelect} />} />
                     <Route path="/rate" element={<RatePage />} />
