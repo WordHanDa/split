@@ -1,15 +1,13 @@
 import React from 'react';
-import AddGroup from '../components/AddGroup';
-import ShowGroup from '../components/ShowGroup';
+import AddBill from '../components/AddBill';
 
-const GroupPage = () => {
+const BillPage = () => {
     return (
         <div>
-            <h1>Group Management</h1>
-            <AddGroup />
-            <ShowGroup />
+            <h1>Bill Management</h1>
+            <AddBill />
         </div>
     );
 };
 
-export default GroupPage;
+export default BillPage;

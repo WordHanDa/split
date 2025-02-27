@@ -4,6 +4,7 @@ import './App.css';
 import GroupPage from './pages/groupPage';
 import RatePage from './pages/ratePage';
 import UserPage from './pages/userPage';
+import BillPage from './pages/billPage'; // 確保導入 BillPage
 import Cookies from 'js-cookie';
 
 const App = () => {
@@ -30,13 +31,14 @@ const App = () => {
                     <button onClick={() => window.location.href = '/group'}>Group</button>
                     <button onClick={() => window.location.href = '/rate'}>Rate</button>
                     <button onClick={() => window.location.href = '/user'}>User</button>
+                    <button onClick={() => window.location.href = '/bill'}>Bill</button> {/* 添加 Bill 按鈕 */}
                 </nav>
                 {selectedGroup && <div>Current Group: {selectedGroup}</div>}
                 <Routes>
                     <Route path="/group" element={<GroupPage onGroupSelect={handleGroupSelect} />} />
                     <Route path="/rate" element={<RatePage />} />
                     <Route path="/user" element={<UserPage />} />
-                    {/* Add other routes here */}
+                    <Route path="/bill" element={<BillPage />} /> {/* 添加 BillPage 路由 */}
                 </Routes>
             </div>
         </Router>
