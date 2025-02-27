@@ -66,7 +66,7 @@ const AddBill = () => {
           note: note,
           create_time: createTime, // 使用符合 MySQL 格式的日期時間值
           rate_id: 1, // 假設匯率 ID 為 1，你可以根據實際情況修改
-          create_card: createCard ? 1 : 0, // 根據是否勾選信用卡來設定值
+          credit_card: creditCard ? 1 : 0, // 根據是否勾選信用卡來設定值
           your_rate_id: 1 // 假設你的匯率 ID 為 1，你可以根據實際情況修改
         }, {
           headers: {
@@ -127,7 +127,7 @@ const AddBill = () => {
             <div>
                 <input 
                     type="checkbox" 
-                    checked={createCard} 
+                    checked={creditCard} 
                     onChange={(event) => setCreateCard(event.target.checked)} 
                 />
                 <label>Use Credit Card</label>

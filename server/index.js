@@ -164,7 +164,7 @@ app.post('/createBill', (req, res) => {
 
     db.query(
         "INSERT INTO BILL_RECORD (bill_name, amount, user_id, group_id, method, note, create_time, rate_id, create_card, your_rate_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        [bill_name, amount, user_id, group_id, method, note, create_time, rate_id, create_card, your_rate_id],
+        [bill_name, amount, user_id, group_id, method, note, create_time, rate_id, credit_card, your_rate_id],
         (err, result) => {
             if (err) {
                 console.error("MySQL Error:", err);
