@@ -1,14 +1,16 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import Axios from "axios";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 let hostname = "http://macbook-pro.local:3002";
 
-const AddGroup = () => {  // ✅ Capitalized component name
-    const [groupName, setGroupName] = useState(""); // ✅ Moved inside function
+const AddGroup = () => {
+    const [groupName, setGroupName] = useState("");
 
     const add = () => {
         if (!groupName.trim()) {
-            alert("Group name cannot be empty");
+            toast.error("Group name cannot be empty");
             return;
         }
         Axios.post(hostname + "/createGroup", {  
@@ -20,9 +22,13 @@ const AddGroup = () => {  // ✅ Capitalized component name
         })
         .then(() => {
           console.log("Group added successfully");
-          setGroupName("");  // ✅ Clear input after submission
+          setGroupName("");  // Clear input after submission
+          toast.success("Group added successfully!");  // Show success notification
         })
-        .catch((error) => console.error("Error adding group:", error));
+        .catch((error) => {
+          console.error("Error adding group:", error);
+          toast.error("Error adding group");  // Show error notification
+        });
     };
 
     return (
@@ -34,6 +40,7 @@ const AddGroup = () => {  // ✅ Capitalized component name
                 placeholder="Enter group name"
             />
             <button onClick={add}>ADD</button>
+            <ToastContainer />
         </div>
     );
 };

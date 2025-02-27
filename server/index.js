@@ -32,6 +32,26 @@ app.get('/USER', (req, res) => {
     });
 });
 
+app.post('/createRate', (req, res) => {
+    const { JPY, NTD } = req.body;
+    
+    if (!JPY || !NTD || JPY.trim() === "" || NTD.trim() === "") {
+        return res.status(400).json({ error: "JPY and NTD rates cannot be empty" });
+    }
+
+    db.query(
+        "INSERT INTO YOUR_RATE (JPY, NTD) VALUES (?, ?)",
+        [JPY, NTD],
+        (err, result) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                return res.status(500).json({ error: "Database error" });
+            }
+            res.json({ message: "Rate inserted successfully", result });
+        }
+    );
+});
+
 app.post('/createUser', (req, res) => {
     const name = req.body.name;
     
@@ -120,6 +140,16 @@ app.get('/GROUP', (req, res) => {
 
 app.get('/RATE', (req, res) => {
     db.query("SELECT * FROM `RATE` ORDER BY rate_id DESC LIMIT 1", (err, results) => {
+        if (err) {
+            res.status(500).json({ error: err });
+        } else {
+            res.json(results);
+        }
+    });
+});
+
+app.get('/YOUR_RATE', (req, res) => {
+    db.query("SELECT * FROM `YOUR_RATE` ORDER BY your_rate_id DESC LIMIT 1", (err, results) => {
         if (err) {
             res.status(500).json({ error: err });
         } else {

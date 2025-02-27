@@ -1,14 +1,16 @@
-import { useState } from "react";
-import Axios from "axios";
+import React, { useState } from 'react';
+import Axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 let hostname = "http://macbook-pro.local:3002";
 
-const AddUser = () => {  // ✅ Capitalized component name
-    const [userName, setUserName] = useState(""); // ✅ Moved inside function
+const AddUser = () => {
+    const [userName, setUserName] = useState("");
 
     const add = () => {
         if (!userName.trim()) {
-            alert("User name cannot be empty");
+            toast.error("User name cannot be empty");
             return;
         }
         Axios.post(hostname + "/createUser", {  
@@ -20,9 +22,13 @@ const AddUser = () => {  // ✅ Capitalized component name
         })
         .then(() => {
           console.log("User added successfully");
-          setUserName("");  // ✅ Clear input after submission
+          setUserName("");  // Clear input after submission
+          toast.success("User added successfully!");  // Show success notification
         })
-        .catch((error) => console.error("Error adding user:", error));
+        .catch((error) => {
+          console.error("Error adding user:", error);
+          toast.error("Error adding user");  // Show error notification
+        });
     };
 
     return (
@@ -34,6 +40,7 @@ const AddUser = () => {  // ✅ Capitalized component name
                 placeholder="Enter user name"
             />
             <button onClick={add}>ADD</button>
+            <ToastContainer />
         </div>
     );
 };
