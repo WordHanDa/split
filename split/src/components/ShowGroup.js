@@ -1,10 +1,10 @@
-import { useState } from "react";
-import Axios from "axios";
+import React, { useState } from 'react';
+import Axios from 'axios';
 import AddGroupUser from './AddGroupUser';
 
 let hostname = "http://macbook-pro.local:3002";
 
-const ShowGroup = () => {  // ✅ Ensure the function starts with an uppercase letter
+const ShowGroup = ({ onGroupSelect }) => {
     const [groupList, setGroupList] = useState([]);
     const [selectedGroup, setSelectedGroup] = useState(null);
     const [error, setError] = useState("");
@@ -41,7 +41,10 @@ const ShowGroup = () => {  // ✅ Ensure the function starts with an uppercase l
             <button onClick={getGroup}>Show GROUP</button>
             <ul>
                 {groupList.map((group) => (
-                    <li key={group.group_id} onClick={() => setSelectedGroup(group)}>
+                    <li key={group.group_id} onClick={() => {
+                        setSelectedGroup(group.group_name);
+                        onGroupSelect(group.group_name);
+                    }}>
                         {group.group_name}
                     </li>
                 ))}
@@ -57,4 +60,4 @@ const ShowGroup = () => {  // ✅ Ensure the function starts with an uppercase l
     );
 };
 
-export default ShowGroup; // ✅ Ensure correct export
+export default ShowGroup;

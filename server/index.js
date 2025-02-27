@@ -154,6 +154,27 @@ app.get('/YOUR_RATE', (req, res) => {
         }
     });
 });
+
+app.post('/createBill', (req, res) => {
+    const { bill_name, amount, user_id, group_id, method, note, create_time, rate_id, create_card, your_rate_id } = req.body;
+
+    if (!bill_name || !amount || !user_id || !group_id || !method || !create_time) {
+        return res.status(400).json({ error: "All fields are required" });
+    }
+
+    db.query(
+        "INSERT INTO BILL_RECORD (bill_name, amount, user_id, group_id, method, note, create_time, rate_id, create_card, your_rate_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        [bill_name, amount, user_id, group_id, method, note, create_time, rate_id, create_card, your_rate_id],
+        (err, result) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                return res.status(500).json({ error: "Database error" });
+            }
+            res.json({ message: "Bill added successfully", result });
+        }
+    );
+});
+
 app.listen(3002, () => {
     console.log('OK, server is running on port 3002');
 });

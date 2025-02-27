@@ -1,13 +1,11 @@
 import React from 'react';
-import AddGroup from '../components/AddGroup';
 import ShowGroup from '../components/ShowGroup';
 
-const GroupPage = () => {
+const GroupPage = ({ onGroupSelect }) => {
     return (
         <div>
-            <h1>Group Management</h1>
-            <AddGroup />
-            <ShowGroup />
+            <h1>Group Page</h1>
+            <ShowGroup onGroupSelect={onGroupSelect} />
         </div>
     );
 };
