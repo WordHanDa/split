@@ -14,6 +14,7 @@ const AddBill = () => {
     const [groupId, setGroupId] = useState(null);
     const [userId, setUserId] = useState("");
     const [users, setUsers] = useState([]);
+    const [createCard, setCreateCard] = useState(false); // 新增狀態來追蹤是否勾選信用卡
 
     useEffect(() => {
         // 從 cookies 中讀取選擇的群組 ID
@@ -46,6 +47,7 @@ const AddBill = () => {
         console.log("Method:", method);
         console.log("Group ID:", groupId);
         console.log("User ID:", userId);
+        console.log("Create Card:", createCard);
 
         if (!billName.trim() || !amount.trim() || !method.trim() || !groupId || !userId) {
             toast.error("All fields are required");
@@ -64,7 +66,7 @@ const AddBill = () => {
           note: note,
           create_time: createTime, // 使用符合 MySQL 格式的日期時間值
           rate_id: 1, // 假設匯率 ID 為 1，你可以根據實際情況修改
-          create_card: 1, // 假設創建卡片 ID 為 1，你可以根據實際情況修改
+          create_card: createCard ? 1 : 0, // 根據是否勾選信用卡來設定值
           your_rate_id: 1 // 假設你的匯率 ID 為 1，你可以根據實際情況修改
         }, {
           headers: {
@@ -78,6 +80,7 @@ const AddBill = () => {
           setMethod("");  // Clear input after submission
           setNote("");  // Clear input after submission
           setUserId("");  // Clear input after submission
+          setCreateCard(false);  // Clear checkbox after submission
           toast.success("Bill added successfully!");  // Show success notification
         })
         .catch((error) => {
@@ -121,6 +124,14 @@ const AddBill = () => {
                     </option>
                 ))}
             </select>
+            <div>
+                <input 
+                    type="checkbox" 
+                    checked={createCard} 
+                    onChange={(event) => setCreateCard(event.target.checked)} 
+                />
+                <label>Use Credit Card</label>
+            </div>
             <button onClick={addBill}>ADD BILL</button>
             <ToastContainer />
         </div>
