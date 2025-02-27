@@ -99,7 +99,6 @@ app.post('/addGroupUser', (req, res) => {
         return res.status(400).json({ error: "group_id and user_id are required" });
     }
 
-    // 檢查是否已經存在相同的 group_id 和 user_id 組合
     db.query(
         "SELECT * FROM GROUP_USER WHERE group_id = ? AND user_id = ?",
         [group_id, user_id],
@@ -112,7 +111,6 @@ app.post('/addGroupUser', (req, res) => {
                 return res.status(400).json({ error: "User already in group" });
             }
 
-            // 如果不存在，則插入新資料
             db.query(
                 "INSERT INTO GROUP_USER (group_id, user_id) VALUES (?, ?)",
                 [group_id, user_id],
@@ -127,7 +125,6 @@ app.post('/addGroupUser', (req, res) => {
         }
     );
 });
-
 app.get('/GROUP', (req, res) => {
     db.query("SELECT * FROM `GROUP_TABLE`", (err, results) => {
         if (err) {

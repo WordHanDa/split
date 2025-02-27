@@ -25,9 +25,17 @@ const AddGroupUser = ({ addUser }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (selectedUser) {
-            addUser(selectedUser, () => {
-                fetchUsers();
-                toast.success('User added to group successfully!');
+            addUser(selectedUser, (error) => {
+                if (error) {
+                    if (error.response && error.response.data.error === "User already in group") {
+                        toast.error("User already in group");
+                    } else {
+                        toast.error("Error adding user to group");
+                    }
+                } else {
+                    fetchUsers();
+                    toast.success('User added to group successfully!');
+                }
             });
             setSelectedUser('');
         } else {

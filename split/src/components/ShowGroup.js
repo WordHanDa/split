@@ -27,11 +27,11 @@ const ShowGroup = () => {  // ✅ Ensure the function starts with an uppercase l
             .then(() => {
                 console.log("User added to group successfully");
                 setError(""); // Clear any previous error
-                if (callback) callback(); // Call the callback to refresh the user list
+                if (callback) callback(null); // Call the callback to refresh the user list
             })
             .catch((error) => {
                 console.error("Error adding user to group:", error);
-                setError(error.response.data.error); // Set error message
+                if (callback) callback(error); // Pass the error to the callback
             });
         }
     };
