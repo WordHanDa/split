@@ -12,6 +12,8 @@ const AddBill = () => {
     const [method, setMethod] = useState("");
     const [note, setNote] = useState("");
     const [groupId, setGroupId] = useState(null);
+    const [userId, setUserId] = useState("");
+    const [users, setUsers] = useState([]);
 
     useEffect(() => {
         // 從 cookies 中讀取選擇的群組 ID
@@ -21,6 +23,17 @@ const AddBill = () => {
                 const parsedGroup = JSON.parse(savedGroup);
                 setGroupId(parsedGroup.group_id);
                 console.log("Group ID:", parsedGroup.group_id); // 添加這行來檢查 groupId
+
+                // 獲取與該群組 ID 對應的用戶列表
+                Axios.get(`${hostname}/getUsersByGroupId`, {
+                    params: { group_id: parsedGroup.group_id }
+                })
+                .then(response => {
+                    setUsers(response.data);
+                })
+                .catch(error => {
+                    console.error("Error fetching users:", error);
+                });
             } catch (error) {
                 console.error("Error parsing saved group from cookies:", error);
             }
@@ -32,8 +45,9 @@ const AddBill = () => {
         console.log("Amount:", amount);
         console.log("Method:", method);
         console.log("Group ID:", groupId);
+        console.log("User ID:", userId);
 
-        if (!billName.trim() || !amount.trim() || !method.trim() || !groupId) {
+        if (!billName.trim() || !amount.trim() || !method.trim() || !groupId || !userId) {
             toast.error("All fields are required");
             return;
         }
@@ -44,7 +58,7 @@ const AddBill = () => {
         Axios.post(hostname + "/createBill", {  
           bill_name: billName,
           amount: parseFloat(amount),
-          user_id: 1, // 假設用戶 ID 為 1，你可以根據實際情況修改
+          user_id: parseInt(userId, 10), // 確保 user_id 是一個整數
           group_id: parseInt(groupId, 10), // 確保 group_id 是一個整數
           method: method,
           note: note,
@@ -63,6 +77,7 @@ const AddBill = () => {
           setAmount("");  // Clear input after submission
           setMethod("");  // Clear input after submission
           setNote("");  // Clear input after submission
+          setUserId("");  // Clear input after submission
           toast.success("Bill added successfully!");  // Show success notification
         })
         .catch((error) => {
@@ -98,6 +113,14 @@ const AddBill = () => {
                 onChange={(event) => setNote(event.target.value)} 
                 placeholder="Enter note"
             />
+            <select value={userId} onChange={(event) => setUserId(event.target.value)}>
+                <option value="">Select User</option>
+                {users.map(user => (
+                    <option key={user.user_id} value={user.user_id}>
+                        {user.user_name}
+                    </option>
+                ))}
+            </select>
             <button onClick={addBill}>ADD BILL</button>
             <ToastContainer />
         </div>

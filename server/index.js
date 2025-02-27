@@ -175,6 +175,26 @@ app.post('/createBill', (req, res) => {
     );
 });
 
+app.get('/getUsersByGroupId', (req, res) => {
+    const group_id = req.query.group_id;
+
+    if (!group_id) {
+        return res.status(400).json({ error: "group_id is required" });
+    }
+
+    db.query(
+        "SELECT u.user_id, u.user_name FROM GROUP_USER gu JOIN USER u ON gu.user_id = u.user_id WHERE gu.group_id = ?",
+        [group_id],
+        (err, results) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                return res.status(500).json({ error: "Database error" });
+            }
+            res.json(results);
+        }
+    );
+});
+
 app.listen(3002, () => {
     console.log('OK, server is running on port 3002');
 });
