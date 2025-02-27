@@ -14,7 +14,7 @@ const AddBill = () => {
     const [groupId, setGroupId] = useState(null);
     const [userId, setUserId] = useState("");
     const [users, setUsers] = useState([]);
-    const [createCard, setCreateCard] = useState(false); // 新增狀態來追蹤是否勾選信用卡
+    const [creditCard, setCreditCard] = useState(false); // 新增狀態來追蹤是否勾選信用卡
 
     useEffect(() => {
         // 從 cookies 中讀取選擇的群組 ID
@@ -47,7 +47,7 @@ const AddBill = () => {
         console.log("Method:", method);
         console.log("Group ID:", groupId);
         console.log("User ID:", userId);
-        console.log("Create Card:", createCard);
+        console.log("Credit Card:", creditCard);
 
         if (!billName.trim() || !amount.trim() || !method.trim() || !groupId || !userId) {
             toast.error("All fields are required");
@@ -80,7 +80,7 @@ const AddBill = () => {
           setMethod("");  // Clear input after submission
           setNote("");  // Clear input after submission
           setUserId("");  // Clear input after submission
-          setCreateCard(false);  // Clear checkbox after submission
+          setCreditCard(false);  // Clear checkbox after submission
           toast.success("Bill added successfully!");  // Show success notification
         })
         .catch((error) => {
@@ -128,7 +128,7 @@ const AddBill = () => {
                 <input 
                     type="checkbox" 
                     checked={creditCard} 
-                    onChange={(event) => setCreateCard(event.target.checked)} 
+                    onChange={(event) => setCreditCard(event.target.checked)} 
                 />
                 <label>Use Credit Card</label>
             </div>
