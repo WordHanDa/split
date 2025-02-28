@@ -170,8 +170,29 @@ const AddSplit = ({ groupId, users, onSplitComplete }) => {
             return;
         }
 
-        // 回傳分帳資料給父組件
-        onSplitComplete(percentages);
+        // 將百分比轉換為整數 (乘以 100)
+        const convertedPercentages = {};
+        let total = 0;
+
+        // 先處理除了最後一個使用者以外的所有使用者
+        const userIds = Object.keys(percentages);
+        const lastUserId = userIds[userIds.length - 1];
+
+        userIds.forEach((userId, index) => {
+            if (userId !== lastUserId) {
+                // 將百分比乘以 100 並四捨五入為整數
+                const converted = Math.round(parseFloat(percentages[userId]) * 100);
+                convertedPercentages[userId] = converted;
+                total += converted;
+            }
+        });
+
+        // 最後一個使用者的值用 10000 減去前面的總和
+        convertedPercentages[lastUserId] = 10000 - total;
+
+        // 回傳轉換後的資料給父組件
+        onSplitComplete(convertedPercentages);
+        toast.success("分帳比例設定完成");
     };
 
     return (

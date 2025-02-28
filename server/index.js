@@ -234,7 +234,7 @@ app.post('/createSplitRecord', (req, res) => {
             0
         );
 
-        if (Math.abs(totalPercentage - 100) > 0.01) {
+        if (Math.abs(totalPercentage - 10000) > 0.01) {
             console.error(`總百分比不等於 100%: ${totalPercentage}%`);
             return res.status(400).json({ 
                 success: false,
