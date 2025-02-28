@@ -44,72 +44,56 @@ const AddBill = () => {
     }, []);
 
     const addBill = () => {
-        console.log("Bill Name:", billName);
-        console.log("Amount:", amount);
-        console.log("Method:", method);
-        console.log("Group ID:", groupId);
-        console.log("User ID:", userId);
-        console.log("Credit Card:", creditCard);
-
-        if (!billName.trim() || !amount.trim() || method === "" || !groupId || !userId) {
-            toast.error("All fields are required");
-            return;
-        }
-
-        // 確保 amount 是一個有效的數字
-        const parsedAmount = parseInt(amount);
-        console.log("Parsed Amount:", parsedAmount);
-        if (isNaN(parsedAmount) || parsedAmount <= 0) {
-            toast.error("Amount must be a positive number");
-            return;
-        }
-
-        // 確保 method 是一個有效的數字
-        const parsedMethod = parseInt(method, 10);
-        if (isNaN(parsedMethod) || parsedMethod < 0 || parsedMethod > 2) {
-            toast.error("Method must be a valid option");
-            return;
-        }
-
-        // 生成符合 MySQL 格式的日期時間值
-        const createTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
-
-        // 如果是按比例分帳，需要等待分帳資料
-        if (method === "2" && !splitDataToSave) {
-            toast.error("請先設定分帳比例");
+        // 驗證輸入
+        if (!billName || !amount || !method || !userId) {
+            toast.error("請填寫所有必要欄位");
             return;
         }
 
         const createBillRequest = (rateId, yourRateId) => {
-            Axios.post(hostname + "/createBill", {  
+            // 先建立帳單
+            Axios.post(`${hostname}/createBill`, {
                 bill_name: billName,
-                amount: parsedAmount,
-                user_id: parseInt(userId, 10),
-                group_id: parseInt(groupId, 10),
-                method: parsedMethod,
+                amount: parseFloat(amount),
+                user_id: parseInt(userId),
+                group_id: parseInt(groupId),
+                method: parseInt(method),
                 note: note,
-                create_time: createTime,
-                rate_id: rateId,
                 credit_card: creditCard ? 1 : 0,
-                your_rate_id: yourRateId
             })
             .then((response) => {
                 const billId = response.data.insertId;
                 
-                // 如果有分帳資料，儲存分帳記錄
-                if (splitDataToSave && method === "2") {
+                // 根據不同的分帳方式處理 SPLIT_RECORD
+                if (method === "2" && splitDataToSave) {
+                    // 按比例分帳
                     const splits = Object.entries(splitDataToSave).map(([userId, percentage]) => ({
                         bill_id: billId,
                         user_id: parseInt(userId),
-                        percentage: parseFloat(percentage) * 1000
+                        percentage: Math.round(parseFloat(percentage) * 1000)
                     }));
-
+                    return Axios.post(`${hostname}/createSplit`, { splits });
+                } else if (method === "3") {
+                    // 均分處理
+                    const equalPercentage = Math.round((100 / users.length) * 1000);
+                    const splits = users.map(user => ({
+                        bill_id: billId,
+                        user_id: user.user_id,
+                        percentage: equalPercentage
+                    }));
+                    return Axios.post(`${hostname}/createSplit`, { splits });
+                } else if (method === "1") {
+                    // 確切金額，暫時設定付款者 100%
+                    const splits = [{
+                        bill_id: billId,
+                        user_id: parseInt(userId),
+                        percentage: 100000 // 100% * 1000
+                    }];
                     return Axios.post(`${hostname}/createSplit`, { splits });
                 }
-                return Promise.resolve();
             })
             .then(() => {
-                console.log("Bill and split records added successfully");
+                toast.success("帳單新增成功！");
                 // 重置所有欄位
                 setBillName("");
                 setAmount("");
@@ -119,7 +103,6 @@ const AddBill = () => {
                 setCreditCard(false);
                 setShowSplit(false);
                 setSplitDataToSave(null);
-                toast.success("帳單新增成功！");
             })
             .catch((error) => {
                 console.error("Error:", error);
