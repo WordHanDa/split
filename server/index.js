@@ -209,24 +209,48 @@ app.get('/getUsersByGroupId', (req, res) => {
 app.post('/createSplit', (req, res) => {
     const { splits } = req.body;
 
+    // 輸入驗證
     if (!splits || !Array.isArray(splits) || splits.length === 0) {
+        console.error("Invalid input:", req.body);
         return res.status(400).json({ error: "splits array is required" });
     }
 
+    // 驗證每個分帳記錄的資料
+    for (const split of splits) {
+        if (!split.bill_id || !split.user_id || !split.percentage) {
+            console.error("Invalid split record:", split);
+            return res.status(400).json({ 
+                error: "Each split record must contain bill_id, user_id, and percentage" 
+            });
+        }
+    }
+
     const values = splits.map(split => [
-        split.bill_id,
-        split.user_id,
-        split.percentage
+        parseInt(split.bill_id),
+        parseInt(split.user_id),
+        parseInt(split.percentage)
     ]);
+
+    console.log("Inserting split records:", values);
 
     db.query(
         "INSERT INTO SPLIT_RECORD (bill_id, user_id, percentage) VALUES ?",
         [values],
         (err, result) => {
             if (err) {
-                console.error("MySQL Error:", err);
-                return res.status(500).json({ error: "Database error" });
+                console.error("MySQL Error details:", {
+                    code: err.code,
+                    errno: err.errno,
+                    sqlMessage: err.sqlMessage,
+                    sql: err.sql
+                });
+                return res.status(500).json({ 
+                    error: "Database error",
+                    details: err.sqlMessage 
+                });
             }
+
+            console.log("Split records inserted successfully:", result);
             res.json({ 
                 message: "Split records created successfully", 
                 result 

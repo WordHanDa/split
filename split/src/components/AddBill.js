@@ -203,18 +203,21 @@ const AddBill = () => {
                         }));
 
                         // 發送請求到後端
-                        Axios.post(`${hostname}/createSplit`, {
-                            group_id: groupId,
-                            splits: splits
-                        })
-                        .then(response => {
-                            toast.success("分帳比例設定成功！");
-                            console.log("Split data saved:", response.data);
-                        })
-                        .catch(error => {
-                            console.error("Error saving split data:", error);
-                            toast.error("分帳比例設定失敗");
-                        });
+                        Axios.post(`${hostname}/createSplit`, { splits })
+                            .then(response => {
+                                console.log("Split records saved successfully:", response.data);
+                                toast.success("分帳比例設定成功！");
+                            })
+                            .catch(error => {
+                                console.error("Split error details:", {
+                                    response: error.response?.data,
+                                    status: error.response?.status,
+                                    message: error.message
+                                });
+                                
+                                const errorMessage = error.response?.data?.details || "分帳比例設定失敗";
+                                toast.error(errorMessage);
+                            });
                     }}
                 />
             )}
