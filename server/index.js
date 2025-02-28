@@ -169,39 +169,43 @@ app.get('/YOUR_RATE', (req, res) => {
 app.post('/createBill', (req, res) => {
     const { bill_name, amount, method, note, group_id, user_id, credit_card } = req.body;
     
+    // 輸入驗證
+    if (!bill_name || !amount || !method || !group_id || !user_id) {
+        return res.status(400).json({ error: "必填欄位不能為空" });
+    }
+
+    // 確保數值正確
+    const values = [
+        bill_name,
+        parseFloat(amount),
+        parseInt(method),
+        note || '',
+        parseInt(group_id),
+        parseInt(user_id),
+        credit_card ? 1 : 0
+    ];
+    
     db.query(
-        "INSERT INTO BILL (bill_name, amount, method, note, group_id, user_id, credit_card) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        [bill_name, amount, method, note, group_id, user_id, credit_card],
+        "INSERT INTO BILL_RECORD (bill_name, amount, method, note, group_id, user_id, credit_card) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        values,
         (err, result) => {
             if (err) {
-                console.error("MySQL Error:", err);
-                res.status(500).json({ error: "Database error" });
+                console.error("MySQL Error:", {
+                    code: err.code,
+                    errno: err.errno,
+                    sqlMessage: err.sqlMessage,
+                    sql: err.sql
+                });
+                res.status(500).json({ 
+                    error: "Database error",
+                    details: err.sqlMessage 
+                });
                 return;
             }
             res.json({ 
                 message: "Bill created successfully",
                 insertId: result.insertId 
             });
-        }
-    );
-});
-
-app.get('/getUsersByGroupId', (req, res) => {
-    const group_id = req.query.group_id;
-
-    if (!group_id) {
-        return res.status(400).json({ error: "group_id is required" });
-    }
-
-    db.query(
-        "SELECT u.user_id, u.user_name FROM GROUP_USER gu JOIN USER u ON gu.user_id = u.user_id WHERE gu.group_id = ?",
-        [group_id],
-        (err, results) => {
-            if (err) {
-                console.error("MySQL Error:", err);
-                return res.status(500).json({ error: "Database error" });
-            }
-            res.json(results);
         }
     );
 });
@@ -255,6 +259,26 @@ app.post('/createSplit', (req, res) => {
                 message: "Split records created successfully", 
                 result 
             });
+        }
+    );
+});
+
+app.get('/getUsersByGroupId', (req, res) => {
+    const group_id = req.query.group_id;
+
+    if (!group_id) {
+        return res.status(400).json({ error: "group_id is required" });
+    }
+
+    db.query(
+        "SELECT u.user_id, u.user_name FROM GROUP_USER gu JOIN USER u ON gu.user_id = u.user_id WHERE gu.group_id = ?",
+        [group_id],
+        (err, results) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                return res.status(500).json({ error: "Database error" });
+            }
+            res.json(results);
         }
     );
 });
