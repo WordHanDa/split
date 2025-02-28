@@ -56,7 +56,7 @@ const AddBill = () => {
         // 生成符合 MySQL 格式的日期時間值
         const createTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-        const createBillRequest = (rateId) => {
+        const createBillRequest = (rateId, yourRateId) => {
             Axios.post(hostname + "/createBill", {  
               bill_name: billName,
               amount: parseFloat(amount),
@@ -67,7 +67,7 @@ const AddBill = () => {
               create_time: createTime, // 使用符合 MySQL 格式的日期時間值
               rate_id: rateId, // 使用獲取的 rate_id
               credit_card: creditCard ? 1 : 0, // 根據是否勾選信用卡來設定值
-              your_rate_id: 1 // 假設你的匯率 ID 為 1，你可以根據實際情況修改
+              your_rate_id: yourRateId // 使用獲取的 your_rate_id
             }, {
               headers: {
                 'Content-Type': 'application/json'
@@ -94,7 +94,7 @@ const AddBill = () => {
             Axios.get(`${hostname}/RATE`)
                 .then(response => {
                     const rateId = response.data[0].rate_id;
-                    createBillRequest(rateId);
+                    createBillRequest(rateId, 1); // 假設 your_rate_id 為 1
                     console.log("Rate ID:", rateId);
                 })
                 .catch(error => {
@@ -102,8 +102,17 @@ const AddBill = () => {
                     toast.error("Error fetching rate");  // Show error notification
                 });
         } else {
-            // 如果沒有勾選信用卡，使用預設的 rate_id
-            createBillRequest(1);
+            // 如果沒有勾選信用卡，先去撈取最後一筆 your_rate_id
+            Axios.get(`${hostname}/YOUR_RATE`)
+                .then(response => {
+                    const yourRateId = response.data[0].your_rate_id;
+                    createBillRequest(1, yourRateId); // 假設 rate_id 為 1
+                    console.log("Your Rate ID:", yourRateId);
+                })
+                .catch(error => {
+                    console.error("Error fetching your rate:", error);
+                    toast.error("Error fetching your rate");  // Show error notification
+                });
         }
     };
 
