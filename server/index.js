@@ -180,7 +180,7 @@ app.post('/createBill', (req, res) => {
             }
             res.json({ 
                 message: "Bill created successfully",
-                billId: result.insertId 
+                insertId: result.insertId 
             });
         }
     );

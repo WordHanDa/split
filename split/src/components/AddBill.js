@@ -17,6 +17,7 @@ const AddBill = () => {
     const [users, setUsers] = useState([]);
     const [creditCard, setCreditCard] = useState(false); // 新增狀態來追蹤是否勾選信用卡
     const [showSplit, setShowSplit] = useState(false);  // 新增狀態控制 AddSplit 的顯示
+    const [splitDataToSave, setSplitDataToSave] = useState(null);
 
     useEffect(() => {
         // 從 cookies 中讀取選擇的群組 ID
@@ -73,36 +74,56 @@ const AddBill = () => {
         // 生成符合 MySQL 格式的日期時間值
         const createTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
+        // 如果是按比例分帳，需要等待分帳資料
+        if (method === "2" && !splitDataToSave) {
+            toast.error("請先設定分帳比例");
+            return;
+        }
+
         const createBillRequest = (rateId, yourRateId) => {
             Axios.post(hostname + "/createBill", {  
-              bill_name: billName,
-              amount: parsedAmount,
-              user_id: parseInt(userId, 10), // 確保 user_id 是一個整數
-              group_id: parseInt(groupId, 10), // 確保 group_id 是一個整數
-              method: parsedMethod, // 確保 method 是一個整數
-              note: note,
-              create_time: createTime, // 使用符合 MySQL 格式的日期時間值
-              rate_id: rateId, // 使用獲取的 rate_id
-              credit_card: creditCard ? 1 : 0, // 根據是否勾選信用卡來設定值
-              your_rate_id: yourRateId // 使用獲取的 your_rate_id
-            }, {
-              headers: {
-                'Content-Type': 'application/json'
-              }
+                bill_name: billName,
+                amount: parsedAmount,
+                user_id: parseInt(userId, 10),
+                group_id: parseInt(groupId, 10),
+                method: parsedMethod,
+                note: note,
+                create_time: createTime,
+                rate_id: rateId,
+                credit_card: creditCard ? 1 : 0,
+                your_rate_id: yourRateId
+            })
+            .then((response) => {
+                const billId = response.data.insertId;
+                
+                // 如果有分帳資料，儲存分帳記錄
+                if (splitDataToSave && method === "2") {
+                    const splits = Object.entries(splitDataToSave).map(([userId, percentage]) => ({
+                        bill_id: billId,
+                        user_id: parseInt(userId),
+                        percentage: parseFloat(percentage) * 1000
+                    }));
+
+                    return Axios.post(`${hostname}/createSplit`, { splits });
+                }
+                return Promise.resolve();
             })
             .then(() => {
-              console.log("Bill added successfully");
-              setBillName("");  // Clear input after submission
-              setAmount("");  // Clear input after submission
-              setMethod("");  // Clear input after submission
-              setNote("");  // Clear input after submission
-              setUserId("");  // Clear input after submission
-              setCreditCard(false);  // Clear checkbox after submission
-              toast.success("Bill added successfully!");  // Show success notification
+                console.log("Bill and split records added successfully");
+                // 重置所有欄位
+                setBillName("");
+                setAmount("");
+                setMethod("");
+                setNote("");
+                setUserId("");
+                setCreditCard(false);
+                setShowSplit(false);
+                setSplitDataToSave(null);
+                toast.success("帳單新增成功！");
             })
             .catch((error) => {
-              console.error("Error adding bill:", error);
-              toast.error("Error adding bill");  // Show error notification
+                console.error("Error:", error);
+                toast.error(error.response?.data?.error || "新增失敗");
             });
         };
 
@@ -196,28 +217,8 @@ const AddBill = () => {
                     groupId={groupId}
                     users={users}
                     onSplitComplete={(splitData) => {
-                        // 將分帳資料轉換為後端需要的格式
-                        const splits = Object.entries(splitData).map(([userId, percentage]) => ({
-                            user_id: parseInt(userId),
-                            percentage: parseFloat(percentage) * 1000 // 轉換為整數儲存
-                        }));
-
-                        // 發送請求到後端
-                        Axios.post(`${hostname}/createSplit`, { splits })
-                            .then(response => {
-                                console.log("Split records saved successfully:", response.data);
-                                toast.success("分帳比例設定成功！");
-                            })
-                            .catch(error => {
-                                console.error("Split error details:", {
-                                    response: error.response?.data,
-                                    status: error.response?.status,
-                                    message: error.message
-                                });
-                                
-                                const errorMessage = error.response?.data?.details || "分帳比例設定失敗";
-                                toast.error(errorMessage);
-                            });
+                        setSplitDataToSave(splitData);
+                        toast.info("請點擊 ADD BILL 完成新增");
                     }}
                 />
             )}
