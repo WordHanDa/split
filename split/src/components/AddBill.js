@@ -102,34 +102,52 @@ const AddBill = () => {
 
         const createBillRequest = (rateId, yourRateId) => {
             Axios.post(hostname + "/createBill", {  
-              bill_name: billName,
-              amount: parsedAmount,
-              user_id: parseInt(userId, 10), // 確保 user_id 是一個整數
-              group_id: parseInt(groupId, 10), // 確保 group_id 是一個整數
-              method: parsedMethod, // 確保 method 是一個整數
-              note: note,
-              create_time: createTime, // 使用符合 MySQL 格式的日期時間值
-              rate_id: rateId, // 使用獲取的 rate_id
-              credit_card: creditCard ? 1 : 0, // 根據是否勾選信用卡來設定值
-              your_rate_id: yourRateId // 使用獲取的 your_rate_id
-            }, {
-              headers: {
-                'Content-Type': 'application/json'
-              }
+                bill_name: billName,
+                amount: parsedAmount,
+                user_id: parseInt(userId, 10),
+                group_id: parseInt(groupId, 10),
+                method: parsedMethod,
+                note: note,
+                create_time: createTime,
+                rate_id: rateId,
+                credit_card: creditCard ? 1 : 0,
+                your_rate_id: yourRateId
             })
-            .then(() => {
-              console.log("Bill added successfully");
-              setBillName("");  // Clear input after submission
-              setAmount("");  // Clear input after submission
-              setMethod("");  // Clear input after submission
-              setNote("");  // Clear input after submission
-              setUserId("");  // Clear input after submission
-              setCreditCard(false);  // Clear checkbox after submission
-              toast.success("Bill added successfully!");  // Show success notification
+            .then((response) => {
+                // 獲取新建立的帳單 ID
+                const newBillId = response.data.result.insertId;
+                
+                // 如果是百分比分帳，則建立分帳記錄
+                if (method === 2 && splitDataToSave) {
+                    Axios.post(`${hostname}/createSplitRecord`, {
+                        bill_id: newBillId,
+                        percentages: splitDataToSave
+                    })
+                    .then(() => {
+                        console.log("Split record added successfully");
+                        toast.success("帳單和分帳記錄新增成功！");
+                    })
+                    .catch((error) => {
+                        console.error("Error adding split record:", error);
+                        toast.error("分帳記錄新增失敗");
+                    });
+                } else {
+                    toast.success("帳單新增成功！");
+                }
+
+                // 清除表單
+                setBillName("");
+                setAmount("");
+                setMethod("");
+                setNote("");
+                setUserId("");
+                setCreditCard(false);
+                setSplitDataToSave(null);
+                setShowSplit(false);
             })
             .catch((error) => {
-              console.error("Error adding bill:", error);
-              toast.error("Error adding bill");  // Show error notification
+                console.error("Error adding bill:", error);
+                toast.error("新增帳單失敗");
             });
         };
 

@@ -178,10 +178,18 @@ app.post('/createBill', (req, res) => {
         [bill_name, amount, user_id, group_id, method, note, create_time, rate_id, credit_card, your_rate_id],
         (err, result) => {
             if (err) {
-                console.error("MySQL Error:", err);
-                return res.status(500).json({ error: "Database error" });
+                console.error("Error creating bill:", err);
+                res.status(500).json({ 
+                    success: false, 
+                    message: "Error creating bill" 
+                });
+            } else {
+                res.json({ 
+                    success: true,
+                    message: "Bill added successfully", 
+                    result: result 
+                });
             }
-            res.json({ message: "Bill added successfully", result });
         }
     );
 });
