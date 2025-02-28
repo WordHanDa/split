@@ -3,7 +3,7 @@ import Axios from "axios";
 import Cookies from 'js-cookie';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import AddSplit from './AddSplit';
+import AddSplit from './AddSplit';  // 導入 AddSplit 組件
 
 let hostname = "http://macbook-pro.local:3002";
 
@@ -16,8 +16,8 @@ const AddBill = () => {
     const [userId, setUserId] = useState("");
     const [users, setUsers] = useState([]);
     const [creditCard, setCreditCard] = useState(false); // 新增狀態來追蹤是否勾選信用卡
-    const [showSplit, setShowSplit] = useState(false); // 新增狀態來追蹤是否顯示 AddSplit
-    const [splitDataToSave, setSplitDataToSave] = useState(null); // 新增狀態來儲存分割資料
+    const [showSplit, setShowSplit] = useState(false);  // 新增狀態控制 AddSplit 的顯示
+    const [splitDataToSave, setSplitDataToSave] = useState(null);
 
     useEffect(() => {
         // 從 cookies 中讀取選擇的群組 ID
@@ -43,73 +43,70 @@ const AddBill = () => {
         }
     }, []);
 
-    const handleMethodChange = (event) => {
-        const selectedMethod = parseInt(event.target.value, 10);
-        setMethod(selectedMethod);
-        // 當選擇方法為 2 (以百分比) 時顯示 AddSplit
-        setShowSplit(selectedMethod === 2);
-    };
-
     const addBill = () => {
-        console.log("Bill Name:", billName);
-        console.log("Amount:", amount);
-        console.log("Method:", method);
-        console.log("Group ID:", groupId);
-        console.log("User ID:", userId);
-        console.log("Credit Card:", creditCard);
-
-        if (!billName.trim() || !amount.trim() || method === "" || !groupId || !userId) {
-            toast.error("All fields are required");
+        // 驗證輸入
+        if (!billName || !amount || !method || !userId) {
+            toast.error("請填寫所有必要欄位");
             return;
         }
-
-        // 確保 amount 是一個有效的數字
-        const parsedAmount = parseInt(amount);
-        if (isNaN(parsedAmount) || parsedAmount <= 0) {
-            toast.error("Amount must be a positive number");
-            return;
-        }
-
-        // 確保 method 是一個有效的數字
-        const parsedMethod = parseInt(method, 10);
-        if (isNaN(parsedMethod) || parsedMethod < 0 || parsedMethod > 2) {
-            toast.error("Method must be a valid option");
-            return;
-        }
-
-        // 生成符合 MySQL 格式的日期時間值
-        const createTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
         const createBillRequest = (rateId, yourRateId) => {
-            Axios.post(hostname + "/createBill", {  
-              bill_name: billName,
-              amount: parsedAmount,
-              user_id: parseInt(userId, 10), // 確保 user_id 是一個整數
-              group_id: parseInt(groupId, 10), // 確保 group_id 是一個整數
-              method: parsedMethod, // 確保 method 是一個整數
-              note: note,
-              create_time: createTime, // 使用符合 MySQL 格式的日期時間值
-              rate_id: rateId, // 使用獲取的 rate_id
-              credit_card: creditCard ? 1 : 0, // 根據是否勾選信用卡來設定值
-              your_rate_id: yourRateId // 使用獲取的 your_rate_id
-            }, {
-              headers: {
-                'Content-Type': 'application/json'
-              }
+            // 先建立帳單
+            Axios.post(`${hostname}/createBill`, {
+                bill_name: billName,
+                amount: parseFloat(amount),
+                user_id: parseInt(userId),
+                group_id: parseInt(groupId),
+                method: parseInt(method),
+                note: note,
+                credit_card: creditCard ? 1 : 0,
+            })
+            .then((response) => {
+                const billId = response.data.insertId;
+                
+                // 根據不同的分帳方式處理 SPLIT_RECORD
+                if (method === "2" && splitDataToSave) {
+                    // 按比例分帳
+                    const splits = Object.entries(splitDataToSave).map(([userId, percentage]) => ({
+                        bill_id: billId,
+                        user_id: parseInt(userId),
+                        percentage: Math.round(parseFloat(percentage) * 1000)
+                    }));
+                    return Axios.post(`${hostname}/createSplit`, { splits });
+                } else if (method === "3") {
+                    // 均分處理
+                    const equalPercentage = Math.round((100 / users.length) * 1000);
+                    const splits = users.map(user => ({
+                        bill_id: billId,
+                        user_id: user.user_id,
+                        percentage: equalPercentage
+                    }));
+                    return Axios.post(`${hostname}/createSplit`, { splits });
+                } else if (method === "1") {
+                    // 確切金額，暫時設定付款者 100%
+                    const splits = [{
+                        bill_id: billId,
+                        user_id: parseInt(userId),
+                        percentage: 100000 // 100% * 1000
+                    }];
+                    return Axios.post(`${hostname}/createSplit`, { splits });
+                }
             })
             .then(() => {
-              console.log("Bill added successfully");
-              setBillName("");  // Clear input after submission
-              setAmount("");  // Clear input after submission
-              setMethod("");  // Clear input after submission
-              setNote("");  // Clear input after submission
-              setUserId("");  // Clear input after submission
-              setCreditCard(false);  // Clear checkbox after submission
-              toast.success("Bill added successfully!");  // Show success notification
+                toast.success("帳單新增成功！");
+                // 重置所有欄位
+                setBillName("");
+                setAmount("");
+                setMethod("");
+                setNote("");
+                setUserId("");
+                setCreditCard(false);
+                setShowSplit(false);
+                setSplitDataToSave(null);
             })
             .catch((error) => {
-              console.error("Error adding bill:", error);
-              toast.error("Error adding bill");  // Show error notification
+                console.error("Error:", error);
+                toast.error(error.response?.data?.error || "新增失敗");
             });
         };
 
@@ -142,6 +139,14 @@ const AddBill = () => {
         }
     };
 
+    // 修改 method 的 onChange 處理函數
+    const handleMethodChange = (event) => {
+        const selectedMethod = parseInt(event.target.value, 10);
+        setMethod(selectedMethod);
+        // 當選擇方法 2（按比例）時顯示 AddSplit
+        setShowSplit(selectedMethod === 2);
+    };
+
     return (
         <div>
             <h2>Add Bill</h2>
@@ -157,7 +162,10 @@ const AddBill = () => {
                 onChange={(event) => setAmount(event.target.value)} 
                 placeholder="Enter amount"
             />
-            <select value={method} onChange={handleMethodChange}>
+            <select 
+                value={method} 
+                onChange={handleMethodChange}
+            >
                 <option value="">Select Method</option>
                 <option value="1">確切金額</option>
                 <option value="2">以百分比</option>
@@ -185,6 +193,8 @@ const AddBill = () => {
                 />
                 <label>Use Credit Card</label>
             </div>
+
+            {/* 當 showSplit 為 true 時顯示 AddSplit 組件 */}
             {showSplit && (
                 <AddSplit 
                     groupId={groupId}
@@ -195,6 +205,7 @@ const AddBill = () => {
                     }}
                 />
             )}
+
             <button onClick={addBill}>ADD BILL</button>
             <ToastContainer />
         </div>
