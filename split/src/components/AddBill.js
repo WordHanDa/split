@@ -9,7 +9,7 @@ let hostname = "http://macbook-pro.local:3002";
 const AddBill = () => {
     const [billName, setBillName] = useState("");
     const [amount, setAmount] = useState("");
-    const [method, setMethod] = useState("");
+    const [method, setMethod] = useState(""); // 修改為空字串
     const [note, setNote] = useState("");
     const [groupId, setGroupId] = useState(null);
     const [userId, setUserId] = useState("");
@@ -48,8 +48,23 @@ const AddBill = () => {
         console.log("User ID:", userId);
         console.log("Credit Card:", creditCard);
 
-        if (!billName.trim() || !amount.trim() || !method.trim() || !groupId || !userId) {
+        if (!billName.trim() || !amount.trim() || method === "" || !groupId || !userId) {
             toast.error("All fields are required");
+            return;
+        }
+
+        // 確保 amount 是一個有效的數字
+        const parsedAmount = parseInt(amount);
+        console.log("Parsed Amount:", parsedAmount);
+        if (isNaN(parsedAmount) || parsedAmount <= 0) {
+            toast.error("Amount must be a positive number");
+            return;
+        }
+
+        // 確保 method 是一個有效的數字
+        const parsedMethod = parseInt(method, 10);
+        if (isNaN(parsedMethod) || parsedMethod < 0 || parsedMethod > 2) {
+            toast.error("Method must be a valid option");
             return;
         }
 
@@ -59,10 +74,10 @@ const AddBill = () => {
         const createBillRequest = (rateId, yourRateId) => {
             Axios.post(hostname + "/createBill", {  
               bill_name: billName,
-              amount: parseFloat(amount),
+              amount: parsedAmount,
               user_id: parseInt(userId, 10), // 確保 user_id 是一個整數
               group_id: parseInt(groupId, 10), // 確保 group_id 是一個整數
-              method: method,
+              method: parsedMethod, // 確保 method 是一個整數
               note: note,
               create_time: createTime, // 使用符合 MySQL 格式的日期時間值
               rate_id: rateId, // 使用獲取的 rate_id
@@ -133,12 +148,12 @@ const AddBill = () => {
                 onChange={(event) => setAmount(event.target.value)} 
                 placeholder="Enter amount"
             />
-            <input 
-                type="text" 
-                value={method} 
-                onChange={(event) => setMethod(event.target.value)} 
-                placeholder="Enter method"
-            />
+            <select value={method} onChange={(event) => setMethod(parseInt(event.target.value, 10))}>
+                <option value="">Select Method</option>
+                <option value="1">確切金額</option>
+                <option value="2">以百分比</option>
+                <option value="3">均分</option>
+            </select>
             <input 
                 type="text" 
                 value={note} 
