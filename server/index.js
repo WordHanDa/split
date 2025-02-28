@@ -33,15 +33,15 @@ app.get('/USER', (req, res) => {
 });
 
 app.post('/createRate', (req, res) => {
-    const { JPY, NTD } = req.body;
+    const { JPY, NTD, user_id } = req.body;
     
-    if (!JPY || !NTD || JPY.trim() === "" || NTD.trim() === "") {
-        return res.status(400).json({ error: "JPY and NTD rates cannot be empty" });
+    if (!JPY || !NTD || !user_id || JPY.trim() === "" || NTD.trim() === "") {
+        return res.status(400).json({ error: "JPY, NTD rates and user_id cannot be empty" });
     }
 
     db.query(
-        "INSERT INTO YOUR_RATE (JPY, NTD) VALUES (?, ?)",
-        [JPY, NTD],
+        "INSERT INTO YOUR_RATE (JPY, NTD, user_id) VALUES (?, ?, ?)",
+        [JPY, NTD, user_id],
         (err, result) => {
             if (err) {
                 console.error("MySQL Error:", err);
@@ -125,6 +125,7 @@ app.post('/addGroupUser', (req, res) => {
         }
     );
 });
+
 app.get('/GROUP', (req, res) => {
     db.query("SELECT * FROM `GROUP_TABLE`", (err, results) => {
         if (err) {

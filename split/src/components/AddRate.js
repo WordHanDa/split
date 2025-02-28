@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -9,10 +9,23 @@ const AddRate = () => {
     const [JPY, setJPY] = useState("");
     const [NTD, setNTD] = useState("");
     const [rate, setRate] = useState(null);
+    const [users, setUsers] = useState([]);
+    const [userId, setUserId] = useState("");
+
+    useEffect(() => {
+        // 獲取所有用戶列表
+        Axios.get(`${hostname}/USER`)
+            .then(response => {
+                setUsers(response.data);
+            })
+            .catch(error => {
+                console.error("Error fetching users:", error);
+            });
+    }, []);
 
     const add = () => {
-        if (!JPY.trim() || !NTD.trim()) {
-            toast.error("JPY and NTD rates cannot be empty");
+        if (!JPY.trim() || !NTD.trim() || !userId) {
+            toast.error("JPY, NTD rates and user selection cannot be empty");
             return;
         }
 
@@ -22,6 +35,7 @@ const AddRate = () => {
         Axios.post(hostname + "/createRate", {  
           JPY,
           NTD,
+          user_id: parseInt(userId, 10) // 確保 user_id 是一個整數
         }, {
           headers: {
             'Content-Type': 'application/json'
@@ -31,6 +45,7 @@ const AddRate = () => {
           console.log("Rate added successfully");
           setJPY("");  // Clear input after submission
           setNTD("");  // Clear input after submission
+          setUserId("");  // Clear input after submission
           toast.success("Rate added successfully!");  // Show success notification
         })
         .catch((error) => {
@@ -53,6 +68,14 @@ const AddRate = () => {
                 onChange={(event) => setNTD(event.target.value)} 
                 placeholder="Enter NTD rate"
             />
+            <select value={userId} onChange={(event) => setUserId(event.target.value)}>
+                <option value="">Select User</option>
+                {users.map(user => (
+                    <option key={user.user_id} value={user.user_id}>
+                        {user.user_name}
+                    </option>
+                ))}
+            </select>
             <button onClick={add}>ADD</button>
             {rate !== null && <p>Converted Rate: {rate}</p>}
             <ToastContainer />
