@@ -3,6 +3,7 @@ import Axios from "axios";
 import Cookies from 'js-cookie';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import AddSplit from './AddSplit';  // 導入 AddSplit 組件
 
 let hostname = "http://macbook-pro.local:3002";
 
@@ -15,6 +16,7 @@ const AddBill = () => {
     const [userId, setUserId] = useState("");
     const [users, setUsers] = useState([]);
     const [creditCard, setCreditCard] = useState(false); // 新增狀態來追蹤是否勾選信用卡
+    const [showSplit, setShowSplit] = useState(false);  // 新增狀態控制 AddSplit 的顯示
 
     useEffect(() => {
         // 從 cookies 中讀取選擇的群組 ID
@@ -133,6 +135,14 @@ const AddBill = () => {
         }
     };
 
+    // 修改 method 的 onChange 處理函數
+    const handleMethodChange = (event) => {
+        const selectedMethod = parseInt(event.target.value, 10);
+        setMethod(selectedMethod);
+        // 當選擇方法 2（按比例）時顯示 AddSplit
+        setShowSplit(selectedMethod === 2);
+    };
+
     return (
         <div>
             <h2>Add Bill</h2>
@@ -148,7 +158,10 @@ const AddBill = () => {
                 onChange={(event) => setAmount(event.target.value)} 
                 placeholder="Enter amount"
             />
-            <select value={method} onChange={(event) => setMethod(parseInt(event.target.value, 10))}>
+            <select 
+                value={method} 
+                onChange={handleMethodChange}
+            >
                 <option value="">Select Method</option>
                 <option value="1">確切金額</option>
                 <option value="2">以百分比</option>
@@ -176,6 +189,36 @@ const AddBill = () => {
                 />
                 <label>Use Credit Card</label>
             </div>
+
+            {/* 當 showSplit 為 true 時顯示 AddSplit 組件 */}
+            {showSplit && (
+                <AddSplit 
+                    groupId={groupId}
+                    users={users}
+                    onSplitComplete={(splitData) => {
+                        // 將分帳資料轉換為後端需要的格式
+                        const splits = Object.entries(splitData).map(([userId, percentage]) => ({
+                            user_id: parseInt(userId),
+                            percentage: parseFloat(percentage) * 1000 // 轉換為整數儲存
+                        }));
+
+                        // 發送請求到後端
+                        Axios.post(`${hostname}/createSplit`, {
+                            group_id: groupId,
+                            splits: splits
+                        })
+                        .then(response => {
+                            toast.success("分帳比例設定成功！");
+                            console.log("Split data saved:", response.data);
+                        })
+                        .catch(error => {
+                            console.error("Error saving split data:", error);
+                            toast.error("分帳比例設定失敗");
+                        });
+                    }}
+                />
+            )}
+
             <button onClick={addBill}>ADD BILL</button>
             <ToastContainer />
         </div>

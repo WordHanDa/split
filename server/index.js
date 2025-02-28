@@ -167,21 +167,21 @@ app.get('/YOUR_RATE', (req, res) => {
 });
 
 app.post('/createBill', (req, res) => {
-    const { bill_name, amount, user_id, group_id, method, note, create_time, rate_id, credit_card, your_rate_id } = req.body;
-
-    if (!bill_name || !amount || !user_id || !group_id || !method || !create_time) {
-        return res.status(400).json({ error: "All fields are required" });
-    }
-
+    const { bill_name, amount, method, note, group_id, user_id, credit_card } = req.body;
+    
     db.query(
-        "INSERT INTO BILL_RECORD (bill_name, amount, user_id, group_id, method, note, create_time, rate_id, credit_card, your_rate_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        [bill_name, amount, user_id, group_id, method, note, create_time, rate_id, credit_card, your_rate_id],
+        "INSERT INTO BILL (bill_name, amount, method, note, group_id, user_id, credit_card) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        [bill_name, amount, method, note, group_id, user_id, credit_card],
         (err, result) => {
             if (err) {
                 console.error("MySQL Error:", err);
-                return res.status(500).json({ error: "Database error" });
+                res.status(500).json({ error: "Database error" });
+                return;
             }
-            res.json({ message: "Bill added successfully", result });
+            res.json({ 
+                message: "Bill created successfully",
+                billId: result.insertId 
+            });
         }
     );
 });
@@ -206,25 +206,31 @@ app.get('/getUsersByGroupId', (req, res) => {
     );
 });
 
-// 新增 createSplit API 端點
 app.post('/createSplit', (req, res) => {
-    const { group_id, splits } = req.body;
+    const { splits } = req.body;
 
-    if (!group_id || !splits || !Array.isArray(splits) || splits.length === 0) {
-        return res.status(400).json({ error: "group_id and splits are required" });
+    if (!splits || !Array.isArray(splits) || splits.length === 0) {
+        return res.status(400).json({ error: "splits array is required" });
     }
 
-    const values = splits.map(split => [group_id, split.user_id, split.percentage]);
+    const values = splits.map(split => [
+        split.bill_id,
+        split.user_id,
+        split.percentage
+    ]);
 
     db.query(
-        "INSERT INTO SPLIT_RECORD (group_id, user_id, percentage) VALUES ?",
+        "INSERT INTO SPLIT_RECORD (bill_id, user_id, percentage) VALUES ?",
         [values],
         (err, result) => {
             if (err) {
                 console.error("MySQL Error:", err);
                 return res.status(500).json({ error: "Database error" });
             }
-            res.json({ message: "Split added successfully", result });
+            res.json({ 
+                message: "Split records created successfully", 
+                result 
+            });
         }
     );
 });
