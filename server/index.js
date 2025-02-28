@@ -206,6 +206,29 @@ app.get('/getUsersByGroupId', (req, res) => {
     );
 });
 
+// 新增 createSplit API 端點
+app.post('/createSplit', (req, res) => {
+    const { group_id, splits } = req.body;
+
+    if (!group_id || !splits || !Array.isArray(splits) || splits.length === 0) {
+        return res.status(400).json({ error: "group_id and splits are required" });
+    }
+
+    const values = splits.map(split => [group_id, split.user_id, split.percentage]);
+
+    db.query(
+        "INSERT INTO SPLIT_RECORD (group_id, user_id, percentage) VALUES ?",
+        [values],
+        (err, result) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                return res.status(500).json({ error: "Database error" });
+            }
+            res.json({ message: "Split added successfully", result });
+        }
+    );
+});
+
 app.listen(3002, () => {
     console.log('OK, server is running on port 3002');
 });
