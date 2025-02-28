@@ -206,7 +206,7 @@ app.get('/getUsersByGroupId', (req, res) => {
     );
 });
 
-// 新增分帳比例記錄
+// 修改現有的 createSplitRecord 端點：
 app.post('/createSplitRecord', (req, res) => {
     const { bill_id, percentages } = req.body;
 
@@ -216,34 +216,50 @@ app.post('/createSplitRecord', (req, res) => {
 
     // 檢查百分比總和是否為 100%
     const totalPercentage = Object.values(percentages).reduce(
-        (sum, value) => sum + parseFloat(value), 
+        (sum, value) => sum + Number(parseFloat(value).toFixed(2)), 
         0
     );
 
     if (Math.abs(totalPercentage - 100) > 0.01) {
-        return res.status(400).json({ error: "分帳比例總和必須等於 100%" });
+        return res.status(400).json({ 
+            error: "分帳比例總和必須等於 100%",
+            total: totalPercentage
+        });
     }
 
-    // 準備批量插入的數據
-    const values = Object.entries(percentages).map(([user_id, percentage]) => [
-        bill_id,
-        parseInt(user_id),
-        parseFloat(percentage)
-    ]);
-
-    // 執行批量插入
+    // 先刪除該帳單已存在的分帳記錄（如果有的話）
     db.query(
-        "INSERT INTO SPLIT_RECORD (bill_id, user_id, percentage) VALUES ?",
-        [values],
-        (err, result) => {
-            if (err) {
-                console.error("MySQL Error:", err);
-                return res.status(500).json({ error: "資料庫錯誤" });
+        "DELETE FROM SPLIT_RECORD WHERE bill_id = ?",
+        [bill_id],
+        (deleteErr) => {
+            if (deleteErr) {
+                console.error("Delete Error:", deleteErr);
+                return res.status(500).json({ error: "刪除舊記錄時發生錯誤" });
             }
-            res.json({ 
-                message: "分帳比例記錄已成功新增", 
-                result 
-            });
+
+            // 準備批量插入的數據，確保數值精確到小數點後兩位
+            const values = Object.entries(percentages).map(([user_id, percentage]) => [
+                bill_id,
+                parseInt(user_id),
+                Number(parseFloat(percentage).toFixed(2))
+            ]);
+
+            // 執行批量插入
+            db.query(
+                "INSERT INTO SPLIT_RECORD (bill_id, user_id, percentage) VALUES ?",
+                [values],
+                (insertErr, result) => {
+                    if (insertErr) {
+                        console.error("Insert Error:", insertErr);
+                        return res.status(500).json({ error: "新增分帳記錄時發生錯誤" });
+                    }
+                    res.json({ 
+                        message: "分帳比例記錄已成功新增", 
+                        result,
+                        splitDetails: values
+                    });
+                }
+            );
         }
     );
 });
