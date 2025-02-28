@@ -206,6 +206,72 @@ app.get('/getUsersByGroupId', (req, res) => {
     );
 });
 
+// 新增分帳比例記錄
+app.post('/createSplitRecord', (req, res) => {
+    const { bill_id, percentages } = req.body;
+
+    if (!bill_id || !percentages || Object.keys(percentages).length === 0) {
+        return res.status(400).json({ error: "帳單ID和分帳比例都是必需的" });
+    }
+
+    // 檢查百分比總和是否為 100%
+    const totalPercentage = Object.values(percentages).reduce(
+        (sum, value) => sum + parseFloat(value), 
+        0
+    );
+
+    if (Math.abs(totalPercentage - 100) > 0.01) {
+        return res.status(400).json({ error: "分帳比例總和必須等於 100%" });
+    }
+
+    // 準備批量插入的數據
+    const values = Object.entries(percentages).map(([user_id, percentage]) => [
+        bill_id,
+        parseInt(user_id),
+        parseFloat(percentage)
+    ]);
+
+    // 執行批量插入
+    db.query(
+        "INSERT INTO SPLIT_RECORD (bill_id, user_id, percentage) VALUES ?",
+        [values],
+        (err, result) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                return res.status(500).json({ error: "資料庫錯誤" });
+            }
+            res.json({ 
+                message: "分帳比例記錄已成功新增", 
+                result 
+            });
+        }
+    );
+});
+
+// 查詢特定帳單的分帳比例
+app.get('/getSplitRecord', (req, res) => {
+    const { bill_id } = req.query;
+
+    if (!bill_id) {
+        return res.status(400).json({ error: "需要提供帳單ID" });
+    }
+
+    db.query(
+        `SELECT sr.*, u.user_name 
+         FROM SPLIT_RECORD sr 
+         JOIN USER u ON sr.user_id = u.user_id 
+         WHERE sr.bill_id = ?`,
+        [bill_id],
+        (err, results) => {
+            if (err) {
+                res.status(500).json({ error: err });
+            } else {
+                res.json(results);
+            }
+        }
+    );
+});
+
 app.listen(3002, () => {
     console.log('OK, server is running on port 3002');
 });
