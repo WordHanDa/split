@@ -94,7 +94,7 @@ const AddBill = () => {
             Axios.get(`${hostname}/RATE`)
                 .then(response => {
                     const rateId = response.data[0].rate_id;
-                    createBillRequest(rateId, 1); // 假設 your_rate_id 為 1
+                    createBillRequest(rateId, 0); // 假設 your_rate_id 為 0
                     console.log("Rate ID:", rateId);
                 })
                 .catch(error => {
