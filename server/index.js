@@ -147,13 +147,23 @@ app.get('/RATE', (req, res) => {
 });
 
 app.get('/YOUR_RATE', (req, res) => {
-    db.query("SELECT * FROM `YOUR_RATE` ORDER BY your_rate_id DESC LIMIT 1", (err, results) => {
-        if (err) {
-            res.status(500).json({ error: err });
-        } else {
-            res.json(results);
+    const user_id = req.query.user_id;
+
+    if (!user_id) {
+        return res.status(400).json({ error: "user_id is required" });
+    }
+
+    db.query(
+        "SELECT * FROM `YOUR_RATE` WHERE user_id = ? ORDER BY your_rate_id DESC LIMIT 1",
+        [user_id],
+        (err, results) => {
+            if (err) {
+                res.status(500).json({ error: err });
+            } else {
+                res.json(results);
+            }
         }
-    });
+    );
 });
 
 app.post('/createBill', (req, res) => {

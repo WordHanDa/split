@@ -102,8 +102,10 @@ const AddBill = () => {
                     toast.error("Error fetching rate");  // Show error notification
                 });
         } else {
-            // 如果沒有勾選信用卡，先去撈取最後一筆 your_rate_id
-            Axios.get(`${hostname}/YOUR_RATE`)
+            // 如果沒有勾選信用卡，先去撈取該用戶的最後一筆 your_rate_id
+            Axios.get(`${hostname}/YOUR_RATE`, {
+                params: { user_id: userId }
+            })
                 .then(response => {
                     const yourRateId = response.data[0].your_rate_id;
                     createBillRequest(1, yourRateId); // 假設 rate_id 為 1
