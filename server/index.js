@@ -210,73 +210,92 @@ app.get('/getUsersByGroupId', (req, res) => {
 app.post('/createSplitRecord', (req, res) => {
     const { bill_id, percentages } = req.body;
 
+    // 驗證輸入
     if (!bill_id || !percentages || Object.keys(percentages).length === 0) {
-        return res.status(400).json({ error: "帳單ID和分帳比例都是必需的" });
-    }
-
-    // 檢查百分比總和是否為 100%
-    const totalPercentage = Object.values(percentages).reduce(
-        (sum, value) => sum + Number(parseFloat(value).toFixed(2)), 
-        0
-    );
-
-    if (Math.abs(totalPercentage - 100) > 0.01) {
+        console.error("缺少必要參數");
         return res.status(400).json({ 
-            error: "分帳比例總和必須等於 100%",
-            total: totalPercentage
+            success: false,
+            message: "帳單ID和分帳比例都是必需的" 
         });
     }
 
-    // 先刪除該帳單已存在的分帳記錄
-    db.query(
-        "DELETE FROM SPLIT_RECORD WHERE bill_id = ?",
-        [bill_id],
-        (deleteErr) => {
-            if (deleteErr) {
-                console.error("Delete Error:", deleteErr);
-                return res.status(500).json({ error: "刪除舊記錄時發生錯誤" });
-            }
+    try {
+        // 檢查百分比總和是否為 100%
+        const totalPercentage = Object.values(percentages).reduce(
+            (sum, value) => sum + Number(parseFloat(value).toFixed(2)), 
+            0
+        );
 
-            // 將每筆分帳記錄逐一插入，而不是使用批量插入
-            const insertPromises = Object.entries(percentages).map(([user_id, percentage]) => {
-                return new Promise((resolve, reject) => {
-                    db.query(
-                        "INSERT INTO SPLIT_RECORD (bill_id, user_id, percentage) VALUES (?, ?, ?)",
-                        [
-                            bill_id,
-                            parseInt(user_id),
-                            Number(parseFloat(percentage).toFixed(2))
-                        ],
-                        (err, result) => {
-                            if (err) {
-                                console.error("Insert Error for user_id", user_id, ":", err);
-                                reject(err);
-                            } else {
-                                resolve(result);
-                            }
-                        }
-                    );
-                });
+        if (Math.abs(totalPercentage - 100) > 0.01) {
+            console.error(`總百分比不等於 100%: ${totalPercentage}%`);
+            return res.status(400).json({ 
+                success: false,
+                message: `分帳比例總和必須等於 100%，目前總和為: ${totalPercentage}%` 
             });
+        }
 
-            // 等待所有插入完成
-            Promise.all(insertPromises)
-                .then(results => {
+        // 先刪除舊記錄
+        db.query(
+            "DELETE FROM SPLIT_RECORD WHERE bill_id = ?",
+            [bill_id],
+            async (deleteErr) => {
+                if (deleteErr) {
+                    console.error("刪除舊記錄錯誤:", deleteErr);
+                    return res.status(500).json({ 
+                        success: false,
+                        message: "刪除舊記錄時發生錯誤" 
+                    });
+                }
+
+                try {
+                    // 逐一插入新記錄
+                    for (const [user_id, percentage] of Object.entries(percentages)) {
+                        await new Promise((resolve, reject) => {
+                            db.query(
+                                "INSERT INTO SPLIT_RECORD (bill_id, user_id, percentage) VALUES (?, ?, ?)",
+                                [
+                                    bill_id,
+                                    parseInt(user_id),
+                                    Number(parseFloat(percentage).toFixed(2))
+                                ],
+                                (err, result) => {
+                                    if (err) {
+                                        reject(err);
+                                    } else {
+                                        resolve(result);
+                                    }
+                                }
+                            );
+                        });
+                    }
+
+                    // 所有記錄插入成功
                     res.json({
+                        success: true,
                         message: "分帳比例記錄已成功新增",
-                        results,
                         splitDetails: Object.entries(percentages).map(([user_id, percentage]) => ({
                             user_id,
                             percentage: Number(parseFloat(percentage).toFixed(2))
                         }))
                     });
-                })
-                .catch(error => {
-                    console.error("Insert Error:", error);
-                    res.status(500).json({ error: "新增分帳記錄時發生錯誤" });
-                });
-        }
-    );
+
+                } catch (insertError) {
+                    console.error("新增記錄錯誤:", insertError);
+                    res.status(500).json({ 
+                        success: false,
+                        message: "新增分帳記錄時發生錯誤" 
+                    });
+                }
+            }
+        );
+
+    } catch (error) {
+        console.error("處理請求時發生錯誤:", error);
+        res.status(500).json({ 
+            success: false,
+            message: "處理請求時發生錯誤" 
+        });
+    }
 });
 
 // 查詢特定帳單的分帳比例
