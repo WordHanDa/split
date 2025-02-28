@@ -227,7 +227,7 @@ app.post('/createSplitRecord', (req, res) => {
         });
     }
 
-    // 先刪除該帳單已存在的分帳記錄（如果有的話）
+    // 先刪除該帳單已存在的分帳記錄
     db.query(
         "DELETE FROM SPLIT_RECORD WHERE bill_id = ?",
         [bill_id],
@@ -237,29 +237,44 @@ app.post('/createSplitRecord', (req, res) => {
                 return res.status(500).json({ error: "刪除舊記錄時發生錯誤" });
             }
 
-            // 準備批量插入的數據，確保數值精確到小數點後兩位
-            const values = Object.entries(percentages).map(([user_id, percentage]) => [
-                bill_id,
-                parseInt(user_id),
-                Number(parseFloat(percentage).toFixed(2))
-            ]);
+            // 將每筆分帳記錄逐一插入，而不是使用批量插入
+            const insertPromises = Object.entries(percentages).map(([user_id, percentage]) => {
+                return new Promise((resolve, reject) => {
+                    db.query(
+                        "INSERT INTO SPLIT_RECORD (bill_id, user_id, percentage) VALUES (?, ?, ?)",
+                        [
+                            bill_id,
+                            parseInt(user_id),
+                            Number(parseFloat(percentage).toFixed(2))
+                        ],
+                        (err, result) => {
+                            if (err) {
+                                console.error("Insert Error for user_id", user_id, ":", err);
+                                reject(err);
+                            } else {
+                                resolve(result);
+                            }
+                        }
+                    );
+                });
+            });
 
-            // 執行批量插入
-            db.query(
-                "INSERT INTO SPLIT_RECORD (bill_id, user_id, percentage) VALUES ?",
-                [values],
-                (insertErr, result) => {
-                    if (insertErr) {
-                        console.error("Insert Error:", insertErr);
-                        return res.status(500).json({ error: "新增分帳記錄時發生錯誤" });
-                    }
-                    res.json({ 
-                        message: "分帳比例記錄已成功新增", 
-                        result,
-                        splitDetails: values
+            // 等待所有插入完成
+            Promise.all(insertPromises)
+                .then(results => {
+                    res.json({
+                        message: "分帳比例記錄已成功新增",
+                        results,
+                        splitDetails: Object.entries(percentages).map(([user_id, percentage]) => ({
+                            user_id,
+                            percentage: Number(parseFloat(percentage).toFixed(2))
+                        }))
                     });
-                }
-            );
+                })
+                .catch(error => {
+                    console.error("Insert Error:", error);
+                    res.status(500).json({ error: "新增分帳記錄時發生錯誤" });
+                });
         }
     );
 });

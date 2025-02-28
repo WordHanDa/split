@@ -57,6 +57,26 @@ const AddBill = () => {
         console.log("Group ID:", groupId);
         console.log("User ID:", userId);
         console.log("Credit Card:", creditCard);
+        
+        // 新增這行來記錄分帳資料
+        if (method === 2 && splitDataToSave) {
+            console.log("Split Data:", splitDataToSave);
+            
+            // 計算總百分比確認是否為 100%
+            const totalPercentage = Object.values(splitDataToSave).reduce(
+                (sum, value) => sum + parseFloat(value), 
+                0
+            );
+            console.log("Total Percentage:", totalPercentage.toFixed(2) + "%");
+            
+            // 顯示每個使用者的分帳細節
+            Object.entries(splitDataToSave).forEach(([userId, percentage]) => {
+                const user = users.find(u => u.user_id === parseInt(userId));
+                if (user) {
+                    console.log(`${user.user_name}: ${percentage}%`);
+                }
+            });
+        }
 
         if (!billName.trim() || !amount.trim() || method === "" || !groupId || !userId) {
             toast.error("All fields are required");
