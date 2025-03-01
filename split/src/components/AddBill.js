@@ -94,10 +94,9 @@ const AddBill = () => {
                 your_rate_id: yourRateId
             })
             .then((response) => {
-                // 獲取新建立的帳單 ID
                 const newBillId = response.data.result.insertId;
                 
-                // 如果是百分比分帳，則建立分帳記錄
+                // 如果是百分比分帳且有分帳資料，新增分帳記錄
                 if (method === 2 && splitDataToSave) {
                     Axios.post(`${hostname}/createSplitRecord`, {
                         bill_id: newBillId,
@@ -105,25 +104,31 @@ const AddBill = () => {
                     })
                     .then(() => {
                         console.log("Split record added successfully");
+                        // 清除所有輸入欄位
+                        setBillName("");
+                        setAmount("");
+                        setMethod("");
+                        setNote("");
+                        setUserId("");
+                        setCreditCard(false);
+                        setSplitDataToSave(null);
+                        setShowSplit(false);
                         toast.success("帳單和分帳記錄新增成功！");
                     })
                     .catch((error) => {
                         console.error("Error adding split record:", error);
-                        toast.error("分帳記錄新增失敗");
+                        toast.error("分帳記錄新增失敗，請重試");
                     });
                 } else {
+                    // 如果不是百分比分帳，直接清除輸入欄位
+                    setBillName("");
+                    setAmount("");
+                    setMethod("");
+                    setNote("");
+                    setUserId("");
+                    setCreditCard(false);
                     toast.success("帳單新增成功！");
                 }
-
-                // 清除表單
-                setBillName("");
-                setAmount("");
-                setMethod("");
-                setNote("");
-                setUserId("");
-                setCreditCard(false);
-                setSplitDataToSave(null);
-                setShowSplit(false);
             })
             .catch((error) => {
                 console.error("Error adding bill:", error);
