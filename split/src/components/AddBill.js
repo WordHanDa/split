@@ -16,8 +16,7 @@ const AddBill = () => {
     const [userId, setUserId] = useState("");
     const [users, setUsers] = useState([]);
     const [creditCard, setCreditCard] = useState(false); // 新增狀態來追蹤是否勾選信用卡
-    const [showSplit, setShowSplit] = useState(false); // 新增狀態來追蹤是否顯示 AddSplit
-    const [splitDataToSave, setSplitDataToSave] = useState(null); // 新增狀態來儲存分割資料
+    const [showSplit, setShowSplit] = useState(false);
     const [getSplitData, setGetSplitData] = useState(null);
 
     useEffect(() => {
@@ -78,7 +77,7 @@ const AddBill = () => {
             return;
         }
 
-        // 如果是百分比分帳，先取得並驗證分帳資料
+        // 使用局部變數來儲存分帳資料，不需要 state
         let splitData = null;
         if (method === 2) {
             if (!getSplitData) {
@@ -92,8 +91,6 @@ const AddBill = () => {
                 return;
             }
             
-            // 設定分帳資料並立即使用
-            setSplitDataToSave(splitData);
             console.log("Split data validated:", splitData);
         }
 
@@ -116,11 +113,10 @@ const AddBill = () => {
             .then((response) => {
                 const newBillId = response.data.result.insertId;
                 
-                // 使用局部變數 splitData 而不是 state
                 if (method === 2 && splitData) {
                     Axios.post(`${hostname}/createSplitRecord`, {
                         bill_id: newBillId,
-                        percentages: splitData  // 使用局部變數
+                        percentages: splitData
                     })
                     .then(() => {
                         console.log("Split record added successfully");
@@ -131,7 +127,6 @@ const AddBill = () => {
                         setNote("");
                         setUserId("");
                         setCreditCard(false);
-                        setSplitDataToSave(null);
                         setShowSplit(false);
                         toast.success("帳單和分帳記錄新增成功！");
                     })

@@ -1,16 +1,10 @@
 import React, { useState, useEffect } from "react";
-import Axios from "axios";
-import Cookies from 'js-cookie';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
-let hostname = "http://macbook-pro.local:3002";
 
 const AddSplit = ({ groupId, users, onSplitComplete }) => {
     const [percentages, setPercentages] = useState({});
     const [originalPercentages, setOriginalPercentages] = useState({});
-    const [currentGroupId, setCurrentGroupId] = useState(groupId);
-    const [groupUsers, setGroupUsers] = useState(users);
 
     useEffect(() => {
         // 初始化百分比為均分
