@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -152,7 +152,8 @@ const AddSplit = ({ groupId, users, onSplitComplete }) => {
         toast.success("已重置為原始比例");
     };
 
-    const validateAndConvertPercentages = () => {
+    // 將驗證和轉換函數移到 useCallback 中
+    const validateAndConvertPercentages = useCallback(() => {
         // 驗證總和是否為 100%
         const totalPercentage = Object.values(percentages).reduce(
             (sum, value) => sum + parseFloat(value), 
@@ -170,7 +171,7 @@ const AddSplit = ({ groupId, users, onSplitComplete }) => {
         const userIds = Object.keys(percentages);
         const lastUserId = userIds[userIds.length - 1];
 
-        userIds.forEach((userId, index) => {
+        userIds.forEach((userId) => {
             if (userId !== lastUserId) {
                 const converted = Math.round(parseFloat(percentages[userId]) * 100);
                 convertedPercentages[userId] = converted;
@@ -182,12 +183,12 @@ const AddSplit = ({ groupId, users, onSplitComplete }) => {
         convertedPercentages[lastUserId] = 10000 - total;
         
         return convertedPercentages;
-    };
+    }, [percentages]);
 
-    // 將驗證和轉換函數提供給父組件
+    // 更新 useEffect 依賴
     useEffect(() => {
         onSplitComplete(validateAndConvertPercentages);
-    }, [percentages]);
+    }, [onSplitComplete, validateAndConvertPercentages]);
 
     return (
         <div>
