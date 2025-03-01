@@ -18,6 +18,7 @@ const AddBill = () => {
     const [creditCard, setCreditCard] = useState(false); // 新增狀態來追蹤是否勾選信用卡
     const [showSplit, setShowSplit] = useState(false); // 新增狀態來追蹤是否顯示 AddSplit
     const [splitDataToSave, setSplitDataToSave] = useState(null); // 新增狀態來儲存分割資料
+    const [getSplitData, setGetSplitData] = useState(null);
 
     useEffect(() => {
         // 從 cookies 中讀取選擇的群組 ID
@@ -77,6 +78,25 @@ const AddBill = () => {
             return;
         }
 
+        // 如果是百分比分帳，先取得並驗證分帳資料
+        let splitData = null;
+        if (method === 2) {
+            if (!getSplitData) {
+                toast.error("請先設定分帳比例");
+                return;
+            }
+            
+            splitData = getSplitData();
+            if (!splitData) {
+                toast.error("分帳比例驗證失敗");
+                return;
+            }
+            
+            // 設定分帳資料並立即使用
+            setSplitDataToSave(splitData);
+            console.log("Split data validated:", splitData);
+        }
+
         // 生成符合 MySQL 格式的日期時間值
         const createTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
@@ -96,11 +116,11 @@ const AddBill = () => {
             .then((response) => {
                 const newBillId = response.data.result.insertId;
                 
-                // 如果是百分比分帳且有分帳資料，新增分帳記錄
-                if (method === 2 && splitDataToSave) {
+                // 使用局部變數 splitData 而不是 state
+                if (method === 2 && splitData) {
                     Axios.post(`${hostname}/createSplitRecord`, {
                         bill_id: newBillId,
-                        percentages: splitDataToSave
+                        percentages: splitData  // 使用局部變數
                     })
                     .then(() => {
                         console.log("Split record added successfully");
@@ -212,9 +232,8 @@ const AddBill = () => {
                 <AddSplit 
                     groupId={groupId}
                     users={users}
-                    onSplitComplete={(splitData) => {
-                        setSplitDataToSave(splitData);
-                        toast.info("請點擊 ADD BILL 完成新增");
+                    onSplitComplete={(validateFn) => {
+                        setGetSplitData(() => validateFn);
                     }}
                 />
             )}

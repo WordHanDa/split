@@ -158,7 +158,7 @@ const AddSplit = ({ groupId, users, onSplitComplete }) => {
         toast.success("已重置為原始比例");
     };
 
-    const handleSubmit = () => {
+    const validateAndConvertPercentages = () => {
         // 驗證總和是否為 100%
         const totalPercentage = Object.values(percentages).reduce(
             (sum, value) => sum + parseFloat(value), 
@@ -167,20 +167,17 @@ const AddSplit = ({ groupId, users, onSplitComplete }) => {
         
         if (Math.abs(totalPercentage - 100) > 0.01) {
             toast.error("總百分比必須等於 100%");
-            return;
+            return null;
         }
 
         // 將百分比轉換為整數 (乘以 100)
         const convertedPercentages = {};
         let total = 0;
-
-        // 先處理除了最後一個使用者以外的所有使用者
         const userIds = Object.keys(percentages);
         const lastUserId = userIds[userIds.length - 1];
 
         userIds.forEach((userId, index) => {
             if (userId !== lastUserId) {
-                // 將百分比乘以 100 並四捨五入為整數
                 const converted = Math.round(parseFloat(percentages[userId]) * 100);
                 convertedPercentages[userId] = converted;
                 total += converted;
@@ -189,11 +186,14 @@ const AddSplit = ({ groupId, users, onSplitComplete }) => {
 
         // 最後一個使用者的值用 10000 減去前面的總和
         convertedPercentages[lastUserId] = 10000 - total;
-
-        // 回傳轉換後的資料給父組件
-        onSplitComplete(convertedPercentages);
-        toast.success("分帳比例設定完成");
+        
+        return convertedPercentages;
     };
+
+    // 將驗證和轉換函數提供給父組件
+    useEffect(() => {
+        onSplitComplete(validateAndConvertPercentages);
+    }, [percentages]);
 
     return (
         <div>
@@ -213,7 +213,6 @@ const AddSplit = ({ groupId, users, onSplitComplete }) => {
                 </div>
             ))}
             <div>
-                <button onClick={handleSubmit}>新增</button>
                 <button onClick={handleReset}>重置</button>
             </div>
             <ToastContainer />
