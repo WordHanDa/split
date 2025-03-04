@@ -166,6 +166,29 @@ app.get('/YOUR_RATE', (req, res) => {
     );
 });
 
+app.get('/YOUR_RATE/latest', (req, res) => {
+    const query = `
+        SELECT yr.*, u.user_name 
+        FROM YOUR_RATE yr
+        JOIN USER u ON yr.user_id = u.user_id
+        WHERE yr.your_rate_id IN (
+            SELECT MAX(your_rate_id)
+            FROM YOUR_RATE
+            GROUP BY user_id
+        )
+        ORDER BY yr.your_rate_id DESC
+    `;
+    
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error("Error fetching latest rates:", err);
+            res.status(500).json({ error: "Error fetching latest rates" });
+        } else {
+            res.json(results);
+        }
+    });
+});
+
 app.post('/createBill', (req, res) => {
     const { bill_name, amount, user_id, group_id, method, note, create_time, rate_id, credit_card, your_rate_id } = req.body;
 
@@ -234,7 +257,7 @@ app.post('/createSplitRecord', (req, res) => {
             0
         );
 
-        if (Math.abs(totalPercentage - 10000) > 0.01) {
+        if (Math.abs(totalPercentage - 100) > 0.01) {
             console.error(`總百分比不等於 100%: ${totalPercentage}%`);
             return res.status(400).json({ 
                 success: false,
