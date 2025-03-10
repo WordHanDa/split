@@ -166,96 +166,53 @@ app.get('/YOUR_RATE', (req, res) => {
     );
 });
 
-app.post('/createBill', (req, res) => {
-    const { bill_name, amount, method, note, group_id, user_id, credit_card } = req.body;
+app.get('/YOUR_RATE/latest', (req, res) => {
+    const query = `
+        SELECT yr.*, u.user_name 
+        FROM YOUR_RATE yr
+        JOIN USER u ON yr.user_id = u.user_id
+        WHERE yr.your_rate_id IN (
+            SELECT MAX(your_rate_id)
+            FROM YOUR_RATE
+            GROUP BY user_id
+        )
+        ORDER BY yr.your_rate_id DESC
+    `;
     
-    // 輸入驗證
-    if (!bill_name || !amount || !method || !group_id || !user_id) {
-        return res.status(400).json({ error: "必填欄位不能為空" });
-    }
-
-    // 確保數值正確
-    const values = [
-        bill_name,
-        parseFloat(amount),
-        parseInt(method),
-        note || '',
-        parseInt(group_id),
-        parseInt(user_id),
-        credit_card ? 1 : 0
-    ];
-    
-    db.query(
-        "INSERT INTO BILL_RECORD (bill_name, amount, method, note, group_id, user_id, credit_card) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        values,
-        (err, result) => {
-            if (err) {
-                console.error("MySQL Error:", {
-                    code: err.code,
-                    errno: err.errno,
-                    sqlMessage: err.sqlMessage,
-                    sql: err.sql
-                });
-                res.status(500).json({ 
-                    error: "Database error",
-                    details: err.sqlMessage 
-                });
-                return;
-            }
-            res.json({ 
-                message: "Bill created successfully",
-                insertId: result.insertId 
-            });
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error("Error fetching latest rates:", err);
+            res.status(500).json({ error: "Error fetching latest rates" });
+        } else {
+            res.json(results);
         }
-    );
+    });
 });
 
-app.post('/createSplit', (req, res) => {
-    const { splits } = req.body;
+app.post('/createBill', (req, res) => {
+    const { bill_name, amount, user_id, group_id, method, note, create_time, rate_id, credit_card, your_rate_id } = req.body;
 
-    if (!splits || !Array.isArray(splits) || splits.length === 0) {
-        console.error("Invalid input:", req.body);
-        return res.status(400).json({ error: "splits array is required" });
+    if (!bill_name || !amount || !user_id || !group_id || !method || !create_time) {
+        return res.status(400).json({ error: "All fields are required" });
     }
-
-    // 驗證每個分帳記錄的資料
-    for (const split of splits) {
-        if (!split.bill_id || !split.user_id || !split.percentage) {
-            console.error("Invalid split record:", split);
-            return res.status(400).json({ 
-                error: "每筆分帳記錄都必須包含 bill_id、user_id 和 percentage" 
-            });
-        }
-    }
-
-    const values = splits.map(split => [
-        parseInt(split.bill_id),
-        parseInt(split.user_id),
-        parseInt(split.percentage)
-    ]);
-
-    console.log("新增分帳記錄:", values);
 
     db.query(
-        "INSERT INTO SPLIT_RECORD (bill_id, user_id, percentage) VALUES ?",
-        [values],
+        "INSERT INTO BILL_RECORD (bill_name, amount, user_id, group_id, method, note, create_time, rate_id, credit_card, your_rate_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        [bill_name, amount, user_id, group_id, method, note, create_time, rate_id, credit_card, your_rate_id],
         (err, result) => {
             if (err) {
-                console.error("MySQL Error:", {
-                    code: err.code,
-                    errno: err.errno,
-                    sqlMessage: err.sqlMessage,
-                    sql: err.sql
+                console.error("Error creating bill:", err);
+                res.status(500).json({ 
+                    success: false, 
+                    message: "Error creating bill" 
                 });
-                return res.status(500).json({ 
-                    error: "資料庫錯誤",
-                    details: err.sqlMessage 
+            } else {
+                res.json({ 
+                    success: true,
+                    message: "Bill added successfully", 
+                    result: result 
                 });
             }
-            res.json({ 
-                message: "分帳記錄新增成功", 
-                result 
-            });
         }
     );
 });
@@ -276,6 +233,122 @@ app.get('/getUsersByGroupId', (req, res) => {
                 return res.status(500).json({ error: "Database error" });
             }
             res.json(results);
+        }
+    );
+});
+
+// 修改現有的 createSplitRecord 端點：
+app.post('/createSplitRecord', (req, res) => {
+    const { bill_id, percentages } = req.body;
+
+    // 驗證輸入
+    if (!bill_id || !percentages || Object.keys(percentages).length === 0) {
+        console.error("缺少必要參數");
+        return res.status(400).json({ 
+            success: false,
+            message: "帳單ID和分帳比例都是必需的" 
+        });
+    }
+
+    try {
+        // 檢查百分比總和是否為 100%
+        const totalPercentage = Object.values(percentages).reduce(
+            (sum, value) => sum + Number(parseFloat(value).toFixed(2)), 
+            0
+        );
+
+        if (Math.abs(totalPercentage - 100) > 0.01) {
+            console.error(`總百分比不等於 100%: ${totalPercentage}%`);
+            return res.status(400).json({ 
+                success: false,
+                message: `分帳比例總和必須等於 100%，目前總和為: ${totalPercentage}%` 
+            });
+        }
+
+        // 先刪除舊記錄
+        db.query(
+            "DELETE FROM SPLIT_RECORD WHERE bill_id = ?",
+            [bill_id],
+            async (deleteErr) => {
+                if (deleteErr) {
+                    console.error("刪除舊記錄錯誤:", deleteErr);
+                    return res.status(500).json({ 
+                        success: false,
+                        message: "刪除舊記錄時發生錯誤" 
+                    });
+                }
+
+                try {
+                    // 逐一插入新記錄
+                    for (const [user_id, percentage] of Object.entries(percentages)) {
+                        await new Promise((resolve, reject) => {
+                            db.query(
+                                "INSERT INTO SPLIT_RECORD (bill_id, user_id, percentage) VALUES (?, ?, ?)",
+                                [
+                                    bill_id,
+                                    parseInt(user_id),
+                                    Number(parseFloat(percentage).toFixed(2))
+                                ],
+                                (err, result) => {
+                                    if (err) {
+                                        reject(err);
+                                    } else {
+                                        resolve(result);
+                                    }
+                                }
+                            );
+                        });
+                    }
+
+                    // 所有記錄插入成功
+                    res.json({
+                        success: true,
+                        message: "分帳比例記錄已成功新增",
+                        splitDetails: Object.entries(percentages).map(([user_id, percentage]) => ({
+                            user_id,
+                            percentage: Number(parseFloat(percentage).toFixed(2))
+                        }))
+                    });
+
+                } catch (insertError) {
+                    console.error("新增記錄錯誤:", insertError);
+                    res.status(500).json({ 
+                        success: false,
+                        message: "新增分帳記錄時發生錯誤" 
+                    });
+                }
+            }
+        );
+
+    } catch (error) {
+        console.error("處理請求時發生錯誤:", error);
+        res.status(500).json({ 
+            success: false,
+            message: "處理請求時發生錯誤" 
+        });
+    }
+});
+
+// 查詢特定帳單的分帳比例
+app.get('/getSplitRecord', (req, res) => {
+    const { bill_id } = req.query;
+
+    if (!bill_id) {
+        return res.status(400).json({ error: "需要提供帳單ID" });
+    }
+
+    db.query(
+        `SELECT sr.*, u.user_name 
+         FROM SPLIT_RECORD sr 
+         JOIN USER u ON sr.user_id = u.user_id 
+         WHERE sr.bill_id = ?`,
+        [bill_id],
+        (err, results) => {
+            if (err) {
+                res.status(500).json({ error: err });
+            } else {
+                res.json(results);
+            }
         }
     );
 });

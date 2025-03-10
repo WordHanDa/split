@@ -1,27 +1,43 @@
-import React, { useState } from "react";
-import Axios from "axios";
+import React, { useState } from 'react';
+import Axios from 'axios';
+import { toast } from 'react-toastify';
 
 let hostname = "http://macbook-pro.local:3002";
 
 const ShowYourRate = () => {
     const [rateList, setRateList] = useState([]);
+    const [loading, setLoading] = useState(false);
 
     const getRate = () => {
-        Axios.get(hostname + "/YOUR_RATE", { timeout: 5000 })
-          .then((response) => {
-            console.log(response.data);
-            setRateList(response.data);
-          })
-          .catch((error) => console.error("Error fetching data:", error));
+        setLoading(true);
+        Axios.get(hostname + "/YOUR_RATE/latest", { timeout: 5000 })
+            .then((response) => {
+                setRateList(response.data);
+                if (response.data.length === 0) {
+                    toast.info("No rates found");
+                }
+            })
+            .catch((error) => {
+                console.error("Error fetching rates:", error);
+                toast.error("Failed to fetch rates");
+            })
+            .finally(() => {
+                setLoading(false);
+            });
     };
 
     return (
         <div>
-            <button onClick={getRate}>Show Your Rate</button>
+            <button 
+                onClick={getRate}
+                disabled={loading}
+            >
+                {loading ? 'Loading...' : 'Show Latest Rates'}
+            </button>
             <ul>
                 {rateList.map((rate, index) => (
                     <li key={index}>
-                        ID: {rate.your_rate_id} | JPY: {rate.JPY} | NTD: {rate.NTD}
+                        {rate.user_name} - JPY: {rate.JPY} NTD: {rate.NTD}
                     </li>
                 ))}
             </ul>

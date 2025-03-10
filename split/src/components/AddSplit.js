@@ -1,16 +1,10 @@
-import React, { useState, useEffect } from "react";
-import Axios from "axios";
-import Cookies from 'js-cookie';
+import React, { useState, useEffect, useCallback } from "react";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
-let hostname = "http://macbook-pro.local:3002";
 
 const AddSplit = ({ groupId, users, onSplitComplete }) => {
     const [percentages, setPercentages] = useState({});
     const [originalPercentages, setOriginalPercentages] = useState({});
-    const [currentGroupId, setCurrentGroupId] = useState(groupId);
-    const [groupUsers, setGroupUsers] = useState(users);
 
     useEffect(() => {
         // 初始化百分比為均分
@@ -158,7 +152,8 @@ const AddSplit = ({ groupId, users, onSplitComplete }) => {
         toast.success("已重置為原始比例");
     };
 
-    const handleSubmit = () => {
+    // 將驗證和轉換函數移到 useCallback 中
+    const validateAndConvertPercentages = useCallback(() => {
         // 驗證總和是否為 100%
         const totalPercentage = Object.values(percentages).reduce(
             (sum, value) => sum + parseFloat(value), 
@@ -167,12 +162,33 @@ const AddSplit = ({ groupId, users, onSplitComplete }) => {
         
         if (Math.abs(totalPercentage - 100) > 0.01) {
             toast.error("總百分比必須等於 100%");
-            return;
+            return null;
         }
 
-        // 回傳分帳資料給父組件
-        onSplitComplete(percentages);
-    };
+        // 將百分比轉換為整數 (乘以 100)
+        const convertedPercentages = {};
+        let total = 0;
+        const userIds = Object.keys(percentages);
+        const lastUserId = userIds[userIds.length - 1];
+
+        userIds.forEach((userId) => {
+            if (userId !== lastUserId) {
+                const converted = Math.round(parseFloat(percentages[userId]) * 100);
+                convertedPercentages[userId] = converted;
+                total += converted;
+            }
+        });
+
+        // 最後一個使用者的值用 10000 減去前面的總和
+        convertedPercentages[lastUserId] = 10000 - total;
+        
+        return convertedPercentages;
+    }, [percentages]);
+
+    // 更新 useEffect 依賴
+    useEffect(() => {
+        onSplitComplete(validateAndConvertPercentages);
+    }, [onSplitComplete, validateAndConvertPercentages]);
 
     return (
         <div>
@@ -192,7 +208,6 @@ const AddSplit = ({ groupId, users, onSplitComplete }) => {
                 </div>
             ))}
             <div>
-                <button onClick={handleSubmit}>新增</button>
                 <button onClick={handleReset}>重置</button>
             </div>
             <ToastContainer />
