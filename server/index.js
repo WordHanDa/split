@@ -237,6 +237,26 @@ app.get('/getUsersByGroupId', (req, res) => {
     );
 });
 
+app.post('/createItem', (req, res) => {
+    const { item_amount, bill_id, user_id, item_name } = req.body;
+
+    if (!item_amount || !bill_id || !user_id || !item_name) {
+        return res.status(400).json({ error: "All fields are required" });
+    }
+
+    db.query(
+        "INSERT INTO ITEM_DETAIL (item_amount, bill_id, user_id, item_name) VALUES (?, ?, ?, ?)",
+        [item_amount, bill_id, user_id, item_name],
+        (err, result) => {
+            if (err) {
+                console.error("Error creating item:", err);
+                return res.status(500).json({ error: "Database error" });
+            }
+            res.json({ message: "Item added successfully", result });
+        }
+    );
+});
+
 // 修改現有的 createSplitRecord 端點：
 app.post('/createSplitRecord', (req, res) => {
     const { bill_id, percentages } = req.body;

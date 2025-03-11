@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Axios from "axios";
 import Cookies from 'js-cookie';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import AddSplit from './AddSplit';
+import AddItem from './AddItem';
 
 let hostname = "http://macbook-pro.local:3002";
 
@@ -18,6 +19,8 @@ const AddBill = () => {
     const [creditCard, setCreditCard] = useState(false); // 新增狀態來追蹤是否勾選信用卡
     const [showSplit, setShowSplit] = useState(false);
     const [getSplitData, setGetSplitData] = useState(null);
+    const [newBillId, setNewBillId] = useState(null); // 新增狀態來儲存新建帳單的 ID
+    const [getItemData, setGetItemData] = useState(null); // 新增狀態來儲存 AddItem 的回調函數
 
     useEffect(() => {
         // 從 cookies 中讀取選擇的群組 ID
@@ -112,6 +115,7 @@ const AddBill = () => {
             })
             .then((response) => {
                 const newBillId = response.data.result.insertId;
+                setNewBillId(newBillId); // 儲存新建帳單的 ID
                 
                 if (method === 2 && splitData) {
                     Axios.post(`${hostname}/createSplitRecord`, {
@@ -143,6 +147,27 @@ const AddBill = () => {
                     setUserId("");
                     setCreditCard(false);
                     toast.success("帳單新增成功！");
+                }
+
+                // Replace the item submission section in the createBillRequest function
+                if (method === 1 && getItemData) {
+                    const items = getItemData();
+                    if (items && Array.isArray(items)) {
+                        Promise.all(items.map(item => 
+                            Axios.post(`${hostname}/createItem`, {
+                                ...item,
+                                bill_id: newBillId
+                            })
+                        ))
+                        .then(() => {
+                            console.log("All items added successfully");
+                            toast.success("Items added successfully");
+                        })
+                        .catch((error) => {
+                            console.error("Error adding items:", error);
+                            toast.error("Failed to add some items");
+                        });
+                    }
                 }
             })
             .catch((error) => {
@@ -179,6 +204,10 @@ const AddBill = () => {
                 });
         }
     };
+
+    const handleItemComplete = useCallback((getItemDataFn) => {
+        setGetItemData(() => getItemDataFn);
+    }, []);
 
     return (
         <div>
@@ -230,6 +259,11 @@ const AddBill = () => {
                     onSplitComplete={(validateFn) => {
                         setGetSplitData(() => validateFn);
                     }}
+                />
+            )}
+            {method === 1 && (
+                <AddItem 
+                    onItemComplete={handleItemComplete}
                 />
             )}
             <button onClick={addBill}>ADD BILL</button>
