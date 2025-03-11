@@ -101,6 +101,9 @@ const AddBill = () => {
         const createTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
         const createBillRequest = (rateId, yourRateId) => {
+            // Create loading toast
+            const loadingToastId = toast.loading("Creating bill...");
+
             Axios.post(hostname + "/createBill", {  
                 bill_name: billName,
                 amount: parsedAmount,
@@ -117,27 +120,27 @@ const AddBill = () => {
                 const newBillId = response.data.result.insertId;
                 
                 try {
-                    // Handle split method
                     if (method === 2 && splitData) {
                         await Axios.post(`${hostname}/createSplitRecord`, {
                             bill_id: newBillId,
                             percentages: splitData
                         });
                     } 
-                    // Handle item method
                     else if (method === 1 && getItemData) {
                         const items = getItemData();
                         if (items && Array.isArray(items)) {
                             await Promise.all(items.map(item => 
                                 Axios.post(`${hostname}/createItem`, {
-                                    ...item,
-                                    bill_id: newBillId
+                                    item_amount: item.item_amount,
+                                    bill_id: newBillId,
+                                    user_id: item.user_id,
+                                    item_name: item.item_name
                                 })
                             ));
                         }
                     }
 
-                    // Success handling
+                    // Clear form fields
                     setBillName("");
                     setAmount("");
                     setMethod("");
@@ -146,30 +149,50 @@ const AddBill = () => {
                     setCreditCard(false);
                     setShowSplit(false);
                     setNewBillId(null);
-                    
-                    // Show success message
-                    toast.success("帳單新增成功！", {
-                        position: "top-right",
+
+                    // Prepare success message
+                    const methodMessages = {
+                        1: "確切金額",
+                        2: "百分比",
+                        3: "均分"
+                    };
+                    const creditCardText = creditCard ? "（信用卡）" : "";
+
+                    // Update loading toast to success
+                    toast.update(loadingToastId, {
+                        render: `帳單新增成功！分帳方式：${methodMessages[method]}${creditCardText}`,
+                        type: "success",
+                        isLoading: false,
                         autoClose: 3000,
                         hideProgressBar: false,
                         closeOnClick: true,
                         pauseOnHover: true,
-                        draggable: true
+                        draggable: true,
+                        theme: "light"
                     });
+
                 } catch (error) {
-                    console.error("Error in follow-up operations:", error);
-                    toast.error("帳單建立成功但其他操作失敗，請檢查", {
-                        position: "top-right",
+                    // Update loading toast to error
+                    toast.update(loadingToastId, {
+                        render: "帳單建立成功但其他操作失敗，請檢查",
+                        type: "error",
+                        isLoading: false,
                         autoClose: 5000
                     });
+                    console.error("Error in follow-up operations:", error);
+                    throw error;
                 }
             })
             .catch((error) => {
-                console.error("Error adding bill:", error);
-                toast.error("新增帳單失敗", {
-                    position: "top-right",
+                // Update loading toast to error
+                toast.update(loadingToastId, {
+                    render: "新增帳單失敗",
+                    type: "error",
+                    isLoading: false,
                     autoClose: 5000
                 });
+                console.error("Error adding bill:", error);
+                toast.error("新增帳單失敗");
             });
         };
 
