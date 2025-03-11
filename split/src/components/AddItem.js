@@ -49,17 +49,18 @@ const AddItem = ({ onItemComplete }) => {
                     item.itemName && 
                     item.item_amount.toString().trim() !== "" && 
                     item.userId.toString().trim() !== "" && 
-                    item.itemName.trim() !== ""
+                    item.itemName.trim() !== "" &&
+                    parseInt(item.item_amount) > 0  // Ensure amount is positive
                 );
 
                 if (!isValid) {
-                    toast.error("Please fill in all fields for each item");
+                    toast.error("Please fill in all fields for each item with valid amounts");
                     return null;
                 }
 
                 // Transform the data to match the server expectations
                 return items.map(item => ({
-                    item_amount: item.item_amount,
+                    item_amount: parseInt(item.item_amount),  // Ensure amount is a number
                     user_id: item.userId,
                     item_name: item.itemName
                 }));

@@ -113,67 +113,90 @@ const AddBill = () => {
                 credit_card: creditCard ? 1 : 0,
                 your_rate_id: yourRateId
             })
-            .then((response) => {
+            .then(async (response) => {
                 const newBillId = response.data.result.insertId;
-                setNewBillId(newBillId); // 儲存新建帳單的 ID
                 
-                if (method === 2 && splitData) {
-                    Axios.post(`${hostname}/createSplitRecord`, {
-                        bill_id: newBillId,
-                        percentages: splitData
-                    })
-                    .then(() => {
-                        console.log("Split record added successfully");
-                        // 清除所有輸入欄位
-                        setBillName("");
-                        setAmount("");
-                        setMethod("");
-                        setNote("");
-                        setUserId("");
-                        setCreditCard(false);
-                        setShowSplit(false);
-                        toast.success("帳單和分帳記錄新增成功！");
-                    })
-                    .catch((error) => {
-                        console.error("Error adding split record:", error);
-                        toast.error("分帳記錄新增失敗，請重試");
-                    });
-                } else {
-                    // 如果不是百分比分帳，直接清除輸入欄位
+                try {
+                    // Handle split method
+                    if (method === 2 && splitData) {
+                        await Axios.post(`${hostname}/createSplitRecord`, {
+                            bill_id: newBillId,
+                            percentages: splitData
+                        });
+                    } 
+                    // Handle item method
+                    else if (method === 1 && getItemData) {
+                        const items = getItemData();
+                        if (items && Array.isArray(items)) {
+                            await Promise.all(items.map(item => 
+                                Axios.post(`${hostname}/createItem`, {
+                                    ...item,
+                                    bill_id: newBillId
+                                })
+                            ));
+                        }
+                    }
+
+                    // Success handling
                     setBillName("");
                     setAmount("");
                     setMethod("");
                     setNote("");
                     setUserId("");
                     setCreditCard(false);
-                    toast.success("帳單新增成功！");
-                }
-
-                // Replace the item submission section in the createBillRequest function
-                if (method === 1 && getItemData) {
-                    const items = getItemData();
-                    if (items && Array.isArray(items)) {
-                        Promise.all(items.map(item => 
-                            Axios.post(`${hostname}/createItem`, {
-                                ...item,
-                                bill_id: newBillId
-                            })
-                        ))
-                        .then(() => {
-                            console.log("All items added successfully");
-                            toast.success("Items added successfully");
-                        })
-                        .catch((error) => {
-                            console.error("Error adding items:", error);
-                            toast.error("Failed to add some items");
-                        });
-                    }
+                    setShowSplit(false);
+                    setNewBillId(null);
+                    
+                    // Show success message
+                    toast.success("帳單新增成功！", {
+                        position: "top-right",
+                        autoClose: 3000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true
+                    });
+                } catch (error) {
+                    console.error("Error in follow-up operations:", error);
+                    toast.error("帳單建立成功但其他操作失敗，請檢查", {
+                        position: "top-right",
+                        autoClose: 5000
+                    });
                 }
             })
             .catch((error) => {
                 console.error("Error adding bill:", error);
-                toast.error("新增帳單失敗");
+                toast.error("新增帳單失敗", {
+                    position: "top-right",
+                    autoClose: 5000
+                });
             });
+        };
+
+        const processItemsAndCreateBill = (rateId, yourRateId) => {
+            if (method === 1 && getItemData) {
+                const items = getItemData();
+                if (items && Array.isArray(items)) {
+                    // Calculate total amount from items
+                    const totalItemAmount = items.reduce((sum, item) => sum + parseInt(item.item_amount), 0);
+                    
+                    // Compare with bill amount
+                    if (totalItemAmount !== parsedAmount) {
+                        const difference = parsedAmount - totalItemAmount;
+                        toast.error(`Total price should match bill price, still missing ${difference} JPY`);
+                        return;
+                    }
+
+                    // Continue with bill creation if amounts match
+                    createBillRequest(rateId, yourRateId);
+                } else {
+                    toast.error("Please add items for the bill");
+                    return;
+                }
+            } else {
+                // Continue with bill creation for other methods
+                createBillRequest(rateId, yourRateId);
+            }
         };
 
         if (creditCard) {
@@ -181,7 +204,7 @@ const AddBill = () => {
             Axios.get(`${hostname}/RATE`)
                 .then(response => {
                     const rateId = response.data[0].rate_id;
-                    createBillRequest(rateId, 0); // 假設 your_rate_id 為 0
+                    processItemsAndCreateBill(rateId, 0); // 假設 your_rate_id 為 0
                     console.log("Rate ID:", rateId);
                 })
                 .catch(error => {
@@ -195,7 +218,7 @@ const AddBill = () => {
             })
                 .then(response => {
                     const yourRateId = response.data[0].your_rate_id;
-                    createBillRequest(1, yourRateId); // 假設 rate_id 為 1
+                    processItemsAndCreateBill(1, yourRateId); // 假設 rate_id 為 1
                     console.log("Your Rate ID:", yourRateId);
                 })
                 .catch(error => {
