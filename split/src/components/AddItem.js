@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Axios from "axios";
 import Cookies from "js-cookie";
 import { ToastContainer, toast } from 'react-toastify';
@@ -39,36 +39,38 @@ const AddItem = ({ onItemComplete }) => {
         }
     }, []);
 
+    // Move validateItems outside of useEffect and memoize it with useCallback
+    const validateItems = useCallback(() => {
+        // Check if all items have required fields and valid values
+        const isValid = items.every(item => 
+            item.item_amount && 
+            item.userId && 
+            item.itemName && 
+            item.item_amount.toString().trim() !== "" && 
+            item.userId.toString().trim() !== "" && 
+            item.itemName.trim() !== "" &&
+            parseInt(item.item_amount) > 0  // Ensure amount is positive
+        );
+
+        if (!isValid) {
+            toast.error("Please fill in all fields for each item with valid amounts");
+            return null;
+        }
+
+        // Transform the data to match the server expectations
+        return items.map(item => ({
+            item_amount: parseInt(item.item_amount),
+            user_id: item.userId,
+            item_name: item.itemName
+        }));
+    }, [items]);
+
+    // Use useEffect to call onItemComplete with the memoized validateItems
     useEffect(() => {
         if (onItemComplete) {
-            const validateItems = () => {
-                // Check if all items have required fields and valid values
-                const isValid = items.every(item => 
-                    item.item_amount && 
-                    item.userId && 
-                    item.itemName && 
-                    item.item_amount.toString().trim() !== "" && 
-                    item.userId.toString().trim() !== "" && 
-                    item.itemName.trim() !== "" &&
-                    parseInt(item.item_amount) > 0  // Ensure amount is positive
-                );
-
-                if (!isValid) {
-                    toast.error("Please fill in all fields for each item with valid amounts");
-                    return null;
-                }
-
-                // Transform the data to match the server expectations
-                return items.map(item => ({
-                    item_amount: parseInt(item.item_amount),  // Ensure amount is a number
-                    user_id: item.userId,
-                    item_name: item.itemName
-                }));
-            };
-
             onItemComplete(validateItems);
         }
-    }, [items, onItemComplete]);
+    }, [validateItems, onItemComplete]);
 
     const handleItemChange = (index, field, value) => {
         const newItems = [...items];

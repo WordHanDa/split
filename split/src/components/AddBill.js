@@ -4,6 +4,7 @@ import Cookies from 'js-cookie';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import AddSplit from './AddSplit';
+import AddItem from './AddItem';  // Add this import
 
 let hostname = "http://macbook-pro.local:3002";
 
@@ -18,6 +19,7 @@ const AddBill = () => {
     const [creditCard, setCreditCard] = useState(false); // 新增狀態來追蹤是否勾選信用卡
     const [showSplit, setShowSplit] = useState(false);
     const [getSplitData, setGetSplitData] = useState(null);
+    const [getItemData, setGetItemData] = useState(null);  // Add this state
 
     useEffect(() => {
         // 從 cookies 中讀取選擇的群組 ID
@@ -48,6 +50,12 @@ const AddBill = () => {
         setMethod(selectedMethod);
         // 當選擇方法為 2 (以百分比) 時顯示 AddSplit
         setShowSplit(selectedMethod === 2);
+    };
+
+    const validateItemsTotal = (items) => {
+        if (!items) return false;
+        const itemsTotal = items.reduce((sum, item) => sum + item.item_amount, 0);
+        return itemsTotal === parseInt(amount);
     };
 
     const addBill = () => {
@@ -92,6 +100,26 @@ const AddBill = () => {
             }
             
             console.log("Split data validated:", splitData);
+        }
+
+        if (method === 1) {
+            if (!getItemData) {
+                toast.error("請先新增項目");
+                return;
+            }
+            
+            const itemData = getItemData();  // Add const to declare itemData
+            if (!itemData) {
+                toast.error("項目驗證失敗");
+                return;
+            }
+            
+            if (!validateItemsTotal(itemData)) {
+                toast.error("項目金額總和必須等於帳單總額");
+                return;
+            }
+            
+            console.log("Item data validated:", itemData);
         }
 
         // 生成符合 MySQL 格式的日期時間值
@@ -229,6 +257,16 @@ const AddBill = () => {
                     users={users}
                     onSplitComplete={(validateFn) => {
                         setGetSplitData(() => validateFn);
+                    }}
+                />
+            )}
+            {method === 1 && (
+                <AddItem 
+                    onItemComplete={(validateFn) => {
+                        // Only update if the function actually changed
+                        if (getItemData !== validateFn) {
+                            setGetItemData(() => validateFn);
+                        }
                     }}
                 />
             )}
