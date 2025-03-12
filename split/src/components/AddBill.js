@@ -54,6 +54,7 @@ const AddBill = () => {
     };
 
     const addBill = () => {
+        console.log("addBill function called");
         console.log("Bill Name:", billName);
         console.log("Amount:", amount);
         console.log("Method:", method);
@@ -62,7 +63,14 @@ const AddBill = () => {
         console.log("Credit Card:", creditCard);
 
         if (!billName.trim() || !amount.trim() || method === "" || !groupId || !userId) {
-            toast.error("All fields are required");
+            toast.error("All fields are required", {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true
+            });
             return;
         }
 
@@ -100,100 +108,86 @@ const AddBill = () => {
         // 生成符合 MySQL 格式的日期時間值
         const createTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-        const createBillRequest = (rateId, yourRateId) => {
-            // Create loading toast
-            const loadingToastId = toast.loading("Creating bill...");
+        const createBillRequest = async (rateId, yourRateId) => {
+            // Initialize toast ID first
+            const loadingToastId = toast.loading("Creating bill...", {
+                position: "top-right",
+                hideProgressBar: false
+            });
 
-            Axios.post(hostname + "/createBill", {  
-                bill_name: billName,
-                amount: parsedAmount,
-                user_id: parseInt(userId, 10),
-                group_id: parseInt(groupId, 10),
-                method: parsedMethod,
-                note: note,
-                create_time: createTime,
-                rate_id: rateId,
-                credit_card: creditCard ? 1 : 0,
-                your_rate_id: yourRateId
-            })
-            .then(async (response) => {
+            try {
+                const response = await Axios.post(hostname + "/createBill", {
+                    bill_name: billName,
+                    amount: parsedAmount,
+                    user_id: parseInt(userId, 10),
+                    group_id: parseInt(groupId, 10),
+                    method: parsedMethod,
+                    note: note,
+                    create_time: createTime,
+                    rate_id: rateId,
+                    credit_card: creditCard ? 1 : 0,
+                    your_rate_id: yourRateId
+                });
+
                 const newBillId = response.data.result.insertId;
                 
-                try {
-                    if (method === 2 && splitData) {
-                        await Axios.post(`${hostname}/createSplitRecord`, {
-                            bill_id: newBillId,
-                            percentages: splitData
-                        });
-                    } 
-                    else if (method === 1 && getItemData) {
-                        const items = getItemData();
-                        if (items && Array.isArray(items)) {
-                            await Promise.all(items.map(item => 
-                                Axios.post(`${hostname}/createItem`, {
-                                    item_amount: item.item_amount,
-                                    bill_id: newBillId,
-                                    user_id: item.user_id,
-                                    item_name: item.item_name
-                                })
-                            ));
-                        }
+                if (method === 2 && splitData) {
+                    await Axios.post(`${hostname}/createSplitRecord`, {
+                        bill_id: newBillId,
+                        percentages: splitData
+                    });
+                } 
+                else if (method === 1 && getItemData) {
+                    const items = getItemData();
+                    if (items && Array.isArray(items)) {
+                        await Promise.all(items.map(item => 
+                            Axios.post(`${hostname}/createItem`, {
+                                item_amount: item.item_amount,
+                                bill_id: newBillId,
+                                user_id: item.user_id,
+                                item_name: item.item_name
+                            })
+                        ));
                     }
-
-                    // Clear form fields
-                    setBillName("");
-                    setAmount("");
-                    setMethod("");
-                    setNote("");
-                    setUserId("");
-                    setCreditCard(false);
-                    setShowSplit(false);
-                    setNewBillId(null);
-
-                    // Prepare success message
-                    const methodMessages = {
-                        1: "確切金額",
-                        2: "百分比",
-                        3: "均分"
-                    };
-                    const creditCardText = creditCard ? "（信用卡）" : "";
-
-                    // Update loading toast to success
-                    toast.update(loadingToastId, {
-                        render: `帳單新增成功！分帳方式：${methodMessages[method]}${creditCardText}`,
-                        type: "success",
-                        isLoading: false,
-                        autoClose: 3000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: true,
-                        draggable: true,
-                        theme: "light"
-                    });
-
-                } catch (error) {
-                    // Update loading toast to error
-                    toast.update(loadingToastId, {
-                        render: "帳單建立成功但其他操作失敗，請檢查",
-                        type: "error",
-                        isLoading: false,
-                        autoClose: 5000
-                    });
-                    console.error("Error in follow-up operations:", error);
-                    throw error;
                 }
-            })
-            .catch((error) => {
-                // Update loading toast to error
+
+                // Clear form fields
+                setBillName("");
+                setAmount("");
+                setMethod("");
+                setNote("");
+                setUserId("");
+                setCreditCard(false);
+                setShowSplit(false);
+                setNewBillId(null);
+
+                // Update the loading toast with success message
                 toast.update(loadingToastId, {
-                    render: "新增帳單失敗",
+                    render: "ADD BILL SUCCESSFUL",
+                    type: "success",
+                    isLoading: false,
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    draggable: true,
+                    theme: "light"
+                });
+
+            } catch (error) {
+                console.error("Error:", error);
+                
+                // Update the loading toast with error message
+                toast.update(loadingToastId, {
+                    render: error.response?.data?.message || "新增帳單失敗",
                     type: "error",
                     isLoading: false,
-                    autoClose: 5000
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    draggable: true,
+                    theme: "light"
                 });
-                console.error("Error adding bill:", error);
-                toast.error("新增帳單失敗");
-            });
+            }
         };
 
         const processItemsAndCreateBill = (rateId, yourRateId) => {
@@ -255,6 +249,14 @@ const AddBill = () => {
         setGetItemData(() => getItemDataFn);
     }, []);
 
+    // Add this to test toast functionality
+    const testToast = () => {
+        toast.success("Test toast!", {
+            position: "top-right",
+            autoClose: 5000,
+        });
+    };
+
     return (
         <div>
             <h2>Add Bill</h2>
@@ -313,6 +315,7 @@ const AddBill = () => {
                 />
             )}
             <button onClick={addBill}>ADD BILL</button>
+            <button onClick={testToast}>Test Toast</button>
             <ToastContainer />
         </div>
     );
