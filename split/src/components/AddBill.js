@@ -5,7 +5,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import AddSplit from './AddSplit';
 
-let hostname = "http://macbook-pro.local:3002";
+let hostname = "http://120.126.16.20:3002";
 
 const AddBill = () => {
     const [billName, setBillName] = useState("");

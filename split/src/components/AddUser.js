@@ -3,7 +3,7 @@ import Axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-let hostname = "http://macbook-pro.local:3002";
+let hostname = "http://120.126.16.20:3002";
 
 const AddUser = () => {
     const [userName, setUserName] = useState("");
