@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Axios from "axios";
 import Cookies from "js-cookie";
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 let hostname = "http://macbook-pro.local:3002";
 
+// We use the parent's toast container - no need for a separate one
 const AddItem = ({ onItemComplete }) => {
     const [items, setItems] = useState([{
         item_amount: "",
@@ -30,11 +31,12 @@ const AddItem = ({ onItemComplete }) => {
                 })
                 .catch(error => {
                     console.error("Error fetching users:", error);
-                    toast.error("Failed to fetch users");
+                    // Use the same toast mechanism as the parent component
+                    console.log("Failed to fetch users");
                 });
             } catch (error) {
                 console.error("Error parsing saved group from cookies:", error);
-                toast.error("Error loading group data");
+                console.log("Error loading group data");
             }
         }
     }, []);
@@ -53,14 +55,14 @@ const AddItem = ({ onItemComplete }) => {
         );
 
         if (!isValid) {
-            toast.error("Please fill in all fields for each item with valid amounts");
+            console.log("Please fill in all fields for each item with valid amounts");
             return null;
         }
 
         // Transform the data to match the server expectations
         return items.map(item => ({
             item_amount: parseInt(item.item_amount),
-            user_id: item.userId,
+            user_id: parseInt(item.userId),
             item_name: item.itemName
         }));
     }, [items]);
@@ -94,20 +96,33 @@ const AddItem = ({ onItemComplete }) => {
     };
 
     return (
-        <div>
-            <h2>Add Items</h2>
+        <div className="add-item-container" style={{ marginTop: '20px', marginBottom: '20px' }}>
+            <h3>Add Items</h3>
+            <div style={{ marginBottom: '10px' }}>
+                <p style={{ fontSize: '14px', color: '#666' }}>
+                    Add items and assign them to specific users. 
+                    Make sure the total amount equals the bill amount.
+                </p>
+            </div>
             {items.map((item, index) => (
-                <div key={index} style={{ marginBottom: '10px', display: 'flex', gap: '10px' }}>
+                <div key={index} style={{ 
+                    marginBottom: '10px', 
+                    display: 'flex', 
+                    gap: '10px',
+                    alignItems: 'center' 
+                }}>
                     <input 
                         type="number" 
                         value={item.item_amount} 
                         onChange={(e) => handleItemChange(index, "item_amount", e.target.value)} 
                         placeholder="Enter amount"
+                        style={{ flex: '0 0 100px' }}
                         required
                     />
                     <select 
                         value={item.userId} 
                         onChange={(e) => handleItemChange(index, "userId", e.target.value)}
+                        style={{ flex: '1' }}
                         required
                     >
                         <option value="">Select User</option>
@@ -122,19 +137,40 @@ const AddItem = ({ onItemComplete }) => {
                         value={item.itemName} 
                         onChange={(e) => handleItemChange(index, "itemName", e.target.value)} 
                         placeholder="Enter item name"
+                        style={{ flex: '2' }}
                         required
                     />
                     {items.length > 1 && (
-                        <button onClick={() => removeItem(index)}>
+                        <button 
+                            onClick={() => removeItem(index)}
+                            style={{
+                                background: '#f44336',
+                                color: 'white',
+                                border: 'none',
+                                padding: '5px 10px',
+                                borderRadius: '4px',
+                                cursor: 'pointer'
+                            }}
+                        >
                             Remove
                         </button>
                     )}
                 </div>
             ))}
-            <button onClick={addNewItem}>
+            <button 
+                onClick={addNewItem}
+                style={{
+                    background: '#4CAF50',
+                    color: 'white',
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    marginTop: '10px'
+                }}
+            >
                 Add Another Item
             </button>
-            <ToastContainer />
         </div>
     );
 };

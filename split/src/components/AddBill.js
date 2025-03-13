@@ -58,22 +58,14 @@ const AddBill = () => {
     const showMessage = useCallback((message, type = "info") => {
         try {
             const toastOptions = {
-                position: "top-center", // Changed to top-center for better visibility
                 autoClose: 5000,
                 hideProgressBar: false,
                 closeOnClick: true,
                 pauseOnHover: true,
                 draggable: true,
                 progress: undefined,
-                theme: "colored", // Using colored theme for better visibility
-                toastId: `toast-${Date.now()}`, // Ensure each toast has a unique ID
-                containerId: TOAST_CONTAINER_ID,
-                onOpen: () => {
-                    console.log("Toast opened:", message);
-                },
-                onClose: () => {
-                    console.log("Toast closed:", message);
-                }
+                toastId: `toast-${Date.now()}`, 
+                containerId: TOAST_CONTAINER_ID
             };
             
             // Delay the toast slightly to ensure DOM is ready
@@ -177,29 +169,39 @@ const AddBill = () => {
                     showMessage("分帳記錄新增失敗，請重試", "error");
                 });
             } else if (parsedMethod === 1 && getItemData) {
-                // Handle item-based split
+                // Handle item-based split - FIXED: Use createItem endpoint!
                 const itemData = getItemData();
                 
-                Axios.post(`${hostname}/createItemRecord`, {
+                // Validate itemData
+                if (!itemData || !Array.isArray(itemData)) {
+                    console.error("Invalid item data:", itemData);
+                    setProcessing(false);
+                    showMessage("項目資料格式錯誤", "error");
+                    return;
+                }
+
+                // Changed from createItemRecord to createItem
+                Axios.post(`${hostname}/createItem`, {
                     bill_id: newBillId,
                     items: itemData
                 })
-                .then(() => {
-                    console.log("Item record added successfully");
-                    
-                    // Reset form first, then show notification
-                    resetForm();
-                    setProcessing(false);
-                    
-                    // Ensure DOM is updated before showing toast
-                    setTimeout(() => {
-                        showMessage("帳單和項目記錄新增成功！", "success");
-                    }, 200);
+                .then((response) => {
+                    if (response.data.success) {
+                        console.log("Item records added successfully");
+                        resetForm();
+                        setProcessing(false);
+                        setTimeout(() => {
+                            showMessage("帳單和項目記錄新增成功！", "success");
+                        }, 200);
+                    } else {
+                        throw new Error(response.data.message || "Failed to add items");
+                    }
                 })
                 .catch((error) => {
-                    console.error("Error adding item record:", error);
+                    console.error("Error adding item records:", error);
                     setProcessing(false);
-                    showMessage("項目記錄新增失敗，請重試", "error");
+                    const errorMessage = error.response?.data?.message || "項目記錄新增失敗，請重試";
+                    showMessage(errorMessage, "error");
                 });
             } else {
                 // Just a regular bill (not percentage or item-based)
@@ -327,7 +329,6 @@ const AddBill = () => {
             <ToastContainer 
                 enableMultiContainer
                 containerId={TOAST_CONTAINER_ID}
-                position="top-center"
                 autoClose={5000} 
                 hideProgressBar={false}
                 newestOnTop
@@ -336,14 +337,6 @@ const AddBill = () => {
                 pauseOnFocusLoss
                 draggable
                 pauseOnHover
-                theme="colored"
-                style={{ 
-                    zIndex: 9999,
-                    position: 'fixed',
-                    top: '20px',
-                    left: '50%',
-                    transform: 'translateX(-50%)'
-                }}
             />
             
             <h2>Add Bill</h2>
