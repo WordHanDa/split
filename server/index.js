@@ -237,35 +237,50 @@ app.get('/getUsersByGroupId', (req, res) => {
     );
 });
 
-// Update the createItem endpoint
-app.post('/createItem', (req, res) => {
-    const { item_amount, bill_id, user_id, item_name } = req.body;
+// Update the createItem endpoint to handle multiple items
+app.post('/createItem', async (req, res) => {
+    const { bill_id, items } = req.body;
 
-    if (!item_amount || !bill_id || !user_id || !item_name) {
+    if (!bill_id || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({ 
             success: false,
-            message: "All fields are required" 
+            message: "Bill ID and items array are required" 
         });
     }
 
-    db.query(
-        "INSERT INTO ITEM_DETAIL (item_amount, bill_id, user_id, item_name) VALUES (?, ?, ?, ?)",
-        [item_amount, bill_id, user_id, item_name],
-        (err, result) => {
-            if (err) {
-                console.error("Error creating item:", err);
-                return res.status(500).json({ 
-                    success: false,
-                    message: "Database error" 
-                });
-            }
-            res.json({ 
-                success: true,
-                message: "Item added successfully", 
-                result 
+    try {
+        // Delete any existing items for this bill
+        await new Promise((resolve, reject) => {
+            db.query(
+                "DELETE FROM ITEM_DETAIL WHERE bill_id = ?",
+                [bill_id],
+                (err) => err ? reject(err) : resolve()
+            );
+        });
+
+        // Insert all new items
+        for (const item of items) {
+            await new Promise((resolve, reject) => {
+                db.query(
+                    "INSERT INTO ITEM_DETAIL (item_amount, bill_id, user_id, item_name) VALUES (?, ?, ?, ?)",
+                    [item.item_amount, bill_id, item.user_id, item.item_name],
+                    (err) => err ? reject(err) : resolve()
+                );
             });
         }
-    );
+
+        res.json({ 
+            success: true,
+            message: "Items added successfully"
+        });
+
+    } catch (error) {
+        console.error("Error creating items:", error);
+        res.status(500).json({ 
+            success: false,
+            message: "Error creating items" 
+        });
+    }
 });
 
 // 修改現有的 createSplitRecord 端點：

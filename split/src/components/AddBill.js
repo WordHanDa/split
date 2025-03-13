@@ -1,35 +1,42 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Axios from "axios";
 import Cookies from 'js-cookie';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import AddSplit from './AddSplit';
-import AddItem from './AddItem';  // Add this import
+import AddItem from './AddItem';
 
-let hostname = "http://macbook-pro.local:3002";
+// Define the hostname for API calls
+const hostname = "http://macbook-pro.local:3002";
+
+// Create a global toast container ID to ensure uniqueness
+const TOAST_CONTAINER_ID = "add-bill-toast-container";
 
 const AddBill = () => {
+    // State definitions
     const [billName, setBillName] = useState("");
     const [amount, setAmount] = useState("");
-    const [method, setMethod] = useState(""); // 修改為空字串
+    const [method, setMethod] = useState(""); 
     const [note, setNote] = useState("");
     const [groupId, setGroupId] = useState(null);
     const [userId, setUserId] = useState("");
     const [users, setUsers] = useState([]);
-    const [creditCard, setCreditCard] = useState(false); // 新增狀態來追蹤是否勾選信用卡
+    const [creditCard, setCreditCard] = useState(false);
     const [showSplit, setShowSplit] = useState(false);
     const [getSplitData, setGetSplitData] = useState(null);
-    const [getItemData, setGetItemData] = useState(null);  // Add this state
-
+    const [getItemData, setGetItemData] = useState(null);
+    const [processing, setProcessing] = useState(false);
+    
+    // Load group and users on component mount
     useEffect(() => {
-        // 從 cookies 中讀取選擇的群組 ID
+        // Load selected group from cookies
         const savedGroup = Cookies.get('selectedGroup');
         if (savedGroup) {
             try {
                 const parsedGroup = JSON.parse(savedGroup);
                 setGroupId(parsedGroup.group_id);
 
-                // 獲取與該群組 ID 對應的用戶列表
+                // Get users list for the group
                 Axios.get(`${hostname}/getUsersByGroupId`, {
                     params: { group_id: parsedGroup.group_id }
                 })
@@ -38,219 +45,360 @@ const AddBill = () => {
                 })
                 .catch(error => {
                     console.error("Error fetching users:", error);
+                    showMessage("Error fetching users", "error");
                 });
             } catch (error) {
                 console.error("Error parsing saved group from cookies:", error);
+                showMessage("Error loading group data", "error");
             }
         }
     }, []);
 
-    const handleMethodChange = (event) => {
-        const selectedMethod = parseInt(event.target.value, 10);
+    // Memoized toast function to prevent recreating on every render
+    const showMessage = useCallback((message, type = "info") => {
+        try {
+            const toastOptions = {
+                position: "top-center", // Changed to top-center for better visibility
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "colored", // Using colored theme for better visibility
+                toastId: `toast-${Date.now()}`, // Ensure each toast has a unique ID
+                containerId: TOAST_CONTAINER_ID,
+                onOpen: () => {
+                    console.log("Toast opened:", message);
+                },
+                onClose: () => {
+                    console.log("Toast closed:", message);
+                }
+            };
+            
+            // Delay the toast slightly to ensure DOM is ready
+            setTimeout(() => {
+                switch(type) {
+                    case "success":
+                        toast.success(message, toastOptions);
+                        break;
+                    case "error":
+                        toast.error(message, toastOptions);
+                        break;
+                    default:
+                        toast.info(message, toastOptions);
+                        break;
+                }
+                console.log(`[${type.toUpperCase()}]`, message);
+            }, 100);
+        } catch (error) {
+            console.error("Toast notification failed:", error);
+            window.alert(message); // Use window.alert as a reliable fallback
+        }
+    }, []);
+
+    // Handle method selection change
+    const handleMethodChange = (e) => {
+        const selectedMethod = parseInt(e.target.value, 10);
         setMethod(selectedMethod);
-        // 當選擇方法為 2 (以百分比) 時顯示 AddSplit
         setShowSplit(selectedMethod === 2);
     };
 
+    // Validate that item amounts match total bill amount
     const validateItemsTotal = (items) => {
         if (!items) return false;
         const itemsTotal = items.reduce((sum, item) => sum + item.item_amount, 0);
         return itemsTotal === parseInt(amount);
     };
 
-    const addBill = () => {
-        console.log("Bill Name:", billName);
-        console.log("Amount:", amount);
-        console.log("Method:", method);
-        console.log("Group ID:", groupId);
-        console.log("User ID:", userId);
-        console.log("Credit Card:", creditCard);
+    // Reset form fields
+    const resetForm = () => {
+        setBillName("");
+        setAmount("");
+        setMethod("");
+        setNote("");
+        setUserId("");
+        setCreditCard(false);
+        setShowSplit(false);
+        setGetSplitData(null);
+        setGetItemData(null);
+    };
 
+    // Create bill record
+    const createBillRecord = (rateId, yourRateId) => {
+        // Generate SQL-compatible datetime
+        const createTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        const parsedAmount = parseInt(amount);
+        const parsedMethod = parseInt(method, 10);
+        
+        // Prevent double submission
+        if (processing) return;
+        setProcessing(true);
+        
+        // Create the API request payload
+        Axios.post(`${hostname}/createBill`, {  
+            bill_name: billName,
+            amount: parsedAmount,
+            user_id: parseInt(userId, 10),
+            group_id: parseInt(groupId, 10),
+            method: parsedMethod,
+            note: note,
+            create_time: createTime,
+            rate_id: rateId,
+            credit_card: creditCard ? 1 : 0,
+            your_rate_id: yourRateId
+        })
+        .then((response) => {
+            const newBillId = response.data.result.insertId;
+            
+            if (parsedMethod === 2 && getSplitData) {
+                // Handle percentage-based split
+                const splitData = getSplitData();
+                
+                Axios.post(`${hostname}/createSplitRecord`, {
+                    bill_id: newBillId,
+                    percentages: splitData
+                })
+                .then(() => {
+                    console.log("Split record added successfully");
+                    
+                    // Reset form first, then show notification
+                    resetForm();
+                    setProcessing(false);
+                    
+                    // Ensure DOM is updated before showing toast
+                    setTimeout(() => {
+                        showMessage("帳單和分帳記錄新增成功！", "success");
+                    }, 200);
+                })
+                .catch((error) => {
+                    console.error("Error adding split record:", error);
+                    setProcessing(false);
+                    showMessage("分帳記錄新增失敗，請重試", "error");
+                });
+            } else if (parsedMethod === 1 && getItemData) {
+                // Handle item-based split
+                const itemData = getItemData();
+                
+                Axios.post(`${hostname}/createItemRecord`, {
+                    bill_id: newBillId,
+                    items: itemData
+                })
+                .then(() => {
+                    console.log("Item record added successfully");
+                    
+                    // Reset form first, then show notification
+                    resetForm();
+                    setProcessing(false);
+                    
+                    // Ensure DOM is updated before showing toast
+                    setTimeout(() => {
+                        showMessage("帳單和項目記錄新增成功！", "success");
+                    }, 200);
+                })
+                .catch((error) => {
+                    console.error("Error adding item record:", error);
+                    setProcessing(false);
+                    showMessage("項目記錄新增失敗，請重試", "error");
+                });
+            } else {
+                // Just a regular bill (not percentage or item-based)
+                resetForm();
+                setProcessing(false);
+                
+                // Ensure DOM is updated before showing toast
+                setTimeout(() => {
+                    showMessage("帳單新增成功！", "success");
+                }, 200);
+            }
+        })
+        .catch((error) => {
+            console.error("Error adding bill:", error);
+            setProcessing(false);
+            showMessage("新增帳單失敗", "error");
+        });
+    };
+
+    // Handle the ADD BILL button click
+    const handleAddBill = (e) => {
+        // Stop any default form submission behavior
+        if (e) e.preventDefault();
+        
+        console.log("Add Bill button clicked");
+        
+        // Validate form fields
         if (!billName.trim() || !amount.trim() || method === "" || !groupId || !userId) {
-            toast.error("All fields are required");
+            showMessage("All fields are required", "error");
             return;
         }
 
-        // 確保 amount 是一個有效的數字
+        // Validate amount
         const parsedAmount = parseInt(amount);
         if (isNaN(parsedAmount) || parsedAmount <= 0) {
-            toast.error("Amount must be a positive number");
+            showMessage("Amount must be a positive number", "error");
             return;
         }
 
-        // 確保 method 是一個有效的數字
+        // Validate method
         const parsedMethod = parseInt(method, 10);
-        if (isNaN(parsedMethod) || parsedMethod < 0 || parsedMethod > 2) {
-            toast.error("Method must be a valid option");
+        if (isNaN(parsedMethod) || parsedMethod < 0 || parsedMethod > 3) {
+            showMessage("Method must be a valid option", "error");
             return;
         }
 
-        // 使用局部變數來儲存分帳資料，不需要 state
-        let splitData = null;
-        if (method === 2) {
+        // Handle split data if percentage method
+        if (parsedMethod === 2) {
             if (!getSplitData) {
-                toast.error("請先設定分帳比例");
+                showMessage("請先設定分帳比例", "error");
                 return;
             }
             
-            splitData = getSplitData();
+            const splitData = getSplitData();
             if (!splitData) {
-                toast.error("分帳比例驗證失敗");
+                showMessage("分帳比例驗證失敗", "error");
                 return;
             }
             
             console.log("Split data validated:", splitData);
         }
 
-        if (method === 1) {
+        // Handle item data if exact amount method
+        if (parsedMethod === 1) {
             if (!getItemData) {
-                toast.error("請先新增項目");
+                showMessage("請先新增項目", "error");
                 return;
             }
             
-            const itemData = getItemData();  // Add const to declare itemData
+            const itemData = getItemData();
             if (!itemData) {
-                toast.error("項目驗證失敗");
+                showMessage("項目驗證失敗", "error");
                 return;
             }
             
             if (!validateItemsTotal(itemData)) {
-                toast.error("項目金額總和必須等於帳單總額");
+                showMessage("項目金額總和必須等於帳單總額", "error");
                 return;
             }
             
             console.log("Item data validated:", itemData);
         }
 
-        // 生成符合 MySQL 格式的日期時間值
-        const createTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
-
-        const createBillRequest = (rateId, yourRateId) => {
-            Axios.post(hostname + "/createBill", {  
-                bill_name: billName,
-                amount: parsedAmount,
-                user_id: parseInt(userId, 10),
-                group_id: parseInt(groupId, 10),
-                method: parsedMethod,
-                note: note,
-                create_time: createTime,
-                rate_id: rateId,
-                credit_card: creditCard ? 1 : 0,
-                your_rate_id: yourRateId
-            })
-            .then((response) => {
-                const newBillId = response.data.result.insertId;
-                
-                if (method === 2 && splitData) {
-                    Axios.post(`${hostname}/createSplitRecord`, {
-                        bill_id: newBillId,
-                        percentages: splitData
-                    })
-                    .then(() => {
-                        console.log("Split record added successfully");
-                        // 清除所有輸入欄位
-                        setBillName("");
-                        setAmount("");
-                        setMethod("");
-                        setNote("");
-                        setUserId("");
-                        setCreditCard(false);
-                        setShowSplit(false);
-                        toast.success("帳單和分帳記錄新增成功！");
-                    })
-                    .catch((error) => {
-                        console.error("Error adding split record:", error);
-                        toast.error("分帳記錄新增失敗，請重試");
-                    });
-                } else {
-                    // 如果不是百分比分帳，直接清除輸入欄位
-                    setBillName("");
-                    setAmount("");
-                    setMethod("");
-                    setNote("");
-                    setUserId("");
-                    setCreditCard(false);
-                    toast.success("帳單新增成功！");
-                }
-            })
-            .catch((error) => {
-                console.error("Error adding bill:", error);
-                toast.error("新增帳單失敗");
-            });
-        };
-
+        // Process the bill based on credit card selection
         if (creditCard) {
-            // 如果勾選了信用卡，先去撈取最後一筆 rate_id
+            // Get latest rate_id for credit card
             Axios.get(`${hostname}/RATE`)
                 .then(response => {
-                    const rateId = response.data[0].rate_id;
-                    createBillRequest(rateId, 0); // 假設 your_rate_id 為 0
-                    console.log("Rate ID:", rateId);
+                    if (response.data && response.data.length > 0) {
+                        const rateId = response.data[0].rate_id;
+                        createBillRecord(rateId, 0);
+                        console.log("Rate ID:", rateId);
+                    } else {
+                        showMessage("No rate data found", "error");
+                    }
                 })
                 .catch(error => {
                     console.error("Error fetching rate:", error);
-                    toast.error("Error fetching rate");  // Show error notification
+                    showMessage("Error fetching rate", "error");
                 });
         } else {
-            // 如果沒有勾選信用卡，先去撈取該用戶的最後一筆 your_rate_id
+            // Get user's last your_rate_id
             Axios.get(`${hostname}/YOUR_RATE`, {
                 params: { user_id: userId }
             })
                 .then(response => {
-                    const yourRateId = response.data[0].your_rate_id;
-                    createBillRequest(1, yourRateId); // 假設 rate_id 為 1
-                    console.log("Your Rate ID:", yourRateId);
+                    if (response.data && response.data.length > 0) {
+                        const yourRateId = response.data[0].your_rate_id;
+                        createBillRecord(1, yourRateId);
+                        console.log("Your Rate ID:", yourRateId);
+                    } else {
+                        showMessage("No user rate data found", "error");
+                    }
                 })
                 .catch(error => {
                     console.error("Error fetching your rate:", error);
-                    toast.error("Error fetching your rate");  // Show error notification
+                    showMessage("Error fetching your rate", "error");
                 });
         }
     };
 
     return (
-        <div>
+        <div className="add-bill-container" style={{ position: 'relative' }}>
+            {/* Toast container positioned with a higher z-index */}
+            <ToastContainer 
+                enableMultiContainer
+                containerId={TOAST_CONTAINER_ID}
+                position="top-center"
+                autoClose={5000} 
+                hideProgressBar={false}
+                newestOnTop
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="colored"
+                style={{ 
+                    zIndex: 9999,
+                    position: 'fixed',
+                    top: '20px',
+                    left: '50%',
+                    transform: 'translateX(-50%)'
+                }}
+            />
+            
             <h2>Add Bill</h2>
-            <input 
-                type="text" 
-                value={billName} 
-                onChange={(event) => setBillName(event.target.value)} 
-                placeholder="Enter bill name"
-            />
-            <input 
-                type="number" 
-                value={amount} 
-                onChange={(event) => setAmount(event.target.value)} 
-                placeholder="Enter amount"
-            />
-            <select value={method} onChange={handleMethodChange}>
-                <option value="">Select Method</option>
-                <option value="1">確切金額</option>
-                <option value="2">以百分比</option>
-                <option value="3">均分</option>
-            </select>
-            <input 
-                type="text" 
-                value={note} 
-                onChange={(event) => setNote(event.target.value)} 
-                placeholder="Enter note"
-            />
-            <select value={userId} onChange={(event) => setUserId(event.target.value)}>
-                <option value="">Select User</option>
-                {users.map(user => (
-                    <option key={user.user_id} value={user.user_id}>
-                        {user.user_name}
-                    </option>
-                ))}
-            </select>
-            <div>
+            
+            {/* Inputs are NOT wrapped in a form to avoid auto submission */}
+            <div className="bill-inputs">
                 <input 
-                    type="checkbox" 
-                    checked={creditCard} 
-                    onChange={(event) => setCreditCard(event.target.checked)} 
+                    type="text" 
+                    value={billName} 
+                    onChange={(e) => setBillName(e.target.value)} 
+                    placeholder="Enter bill name"
                 />
-                <label>Use Credit Card</label>
+                
+                <input 
+                    type="number" 
+                    value={amount} 
+                    onChange={(e) => setAmount(e.target.value)} 
+                    placeholder="Enter amount"
+                />
+                
+                <select value={method} onChange={handleMethodChange}>
+                    <option value="">Select Method</option>
+                    <option value="1">確切金額</option>
+                    <option value="2">以百分比</option>
+                    <option value="3">均分</option>
+                </select>
+                
+                <input 
+                    type="text" 
+                    value={note} 
+                    onChange={(e) => setNote(e.target.value)} 
+                    placeholder="Enter note"
+                />
+                
+                <select value={userId} onChange={(e) => setUserId(e.target.value)}>
+                    <option value="">Select User</option>
+                    {users.map(user => (
+                        <option key={user.user_id} value={user.user_id}>
+                            {user.user_name}
+                        </option>
+                    ))}
+                </select>
+                
+                <div className="checkbox-container">
+                    <input 
+                        type="checkbox" 
+                        id="creditCardCheckbox"
+                        checked={creditCard} 
+                        onChange={(e) => setCreditCard(e.target.checked)} 
+                    />
+                    <label htmlFor="creditCardCheckbox">Use Credit Card</label>
+                </div>
             </div>
+
+            {/* Conditional rendering of AddSplit component */}
             {showSplit && (
                 <AddSplit 
                     groupId={groupId}
@@ -260,18 +408,27 @@ const AddBill = () => {
                     }}
                 />
             )}
+
+            {/* Conditional rendering of AddItem component */}
             {method === 1 && (
                 <AddItem 
                     onItemComplete={(validateFn) => {
-                        // Only update if the function actually changed
                         if (getItemData !== validateFn) {
                             setGetItemData(() => validateFn);
                         }
                     }}
                 />
             )}
-            <button onClick={addBill}>ADD BILL</button>
-            <ToastContainer />
+
+            {/* Button explicitly set to type="button" to prevent form submission */}
+            <button 
+                type="button"
+                onClick={handleAddBill}
+                className="add-bill-button"
+                disabled={processing}
+            >
+                {processing ? "Processing..." : "ADD BILL"}
+            </button>
         </div>
     );
 };
