@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Axios from "axios";
 import Cookies from "js-cookie";
-import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 let hostname = "http://macbook-pro.local:3002";
@@ -14,14 +13,12 @@ const AddItem = ({ onItemComplete }) => {
         itemName: ""
     }]);
     const [users, setUsers] = useState([]);
-    const [groupId, setGroupId] = useState(null);
 
     useEffect(() => {
         const savedGroup = Cookies.get('selectedGroup');
         if (savedGroup) {
             try {
                 const parsedGroup = JSON.parse(savedGroup);
-                setGroupId(parsedGroup.group_id);
 
                 Axios.get(`${hostname}/getUsersByGroupId`, {
                     params: { group_id: parsedGroup.group_id }
@@ -96,33 +93,20 @@ const AddItem = ({ onItemComplete }) => {
     };
 
     return (
-        <div className="add-item-container" style={{ marginTop: '20px', marginBottom: '20px' }}>
+        <div>
             <h3>Add Items</h3>
-            <div style={{ marginBottom: '10px' }}>
-                <p style={{ fontSize: '14px', color: '#666' }}>
-                    Add items and assign them to specific users. 
-                    Make sure the total amount equals the bill amount.
-                </p>
-            </div>
             {items.map((item, index) => (
-                <div key={index} style={{ 
-                    marginBottom: '10px', 
-                    display: 'flex', 
-                    gap: '10px',
-                    alignItems: 'center' 
-                }}>
+                <div key={index}>
                     <input 
                         type="number" 
                         value={item.item_amount} 
                         onChange={(e) => handleItemChange(index, "item_amount", e.target.value)} 
                         placeholder="Enter amount"
-                        style={{ flex: '0 0 100px' }}
                         required
                     />
                     <select 
                         value={item.userId} 
                         onChange={(e) => handleItemChange(index, "userId", e.target.value)}
-                        style={{ flex: '1' }}
                         required
                     >
                         <option value="">Select User</option>
@@ -137,38 +121,16 @@ const AddItem = ({ onItemComplete }) => {
                         value={item.itemName} 
                         onChange={(e) => handleItemChange(index, "itemName", e.target.value)} 
                         placeholder="Enter item name"
-                        style={{ flex: '2' }}
                         required
                     />
                     {items.length > 1 && (
-                        <button 
-                            onClick={() => removeItem(index)}
-                            style={{
-                                background: '#f44336',
-                                color: 'white',
-                                border: 'none',
-                                padding: '5px 10px',
-                                borderRadius: '4px',
-                                cursor: 'pointer'
-                            }}
-                        >
+                        <button onClick={() => removeItem(index)}>
                             Remove
                         </button>
                     )}
                 </div>
             ))}
-            <button 
-                onClick={addNewItem}
-                style={{
-                    background: '#4CAF50',
-                    color: 'white',
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    marginTop: '10px'
-                }}
-            >
+            <button onClick={addNewItem}>
                 Add Another Item
             </button>
         </div>
