@@ -3,7 +3,7 @@ import Axios from "axios";
 import Cookies from "js-cookie";
 import 'react-toastify/dist/ReactToastify.css';
 
-let hostname = "http://macbook-pro.local:3002";
+let hostname = "http://120.126.16.20:3002";
 
 // We use the parent's toast container - no need for a separate one
 const AddItem = ({ onItemComplete }) => {

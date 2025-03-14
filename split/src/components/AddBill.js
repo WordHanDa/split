@@ -7,7 +7,7 @@ import AddSplit from './AddSplit';
 import AddItem from './AddItem';
 
 // Define the hostname for API calls
-const hostname = "http://macbook-pro.local:3002";
+const hostname = "http://120.126.16.20:3002";
 
 // Create a global toast container ID to ensure uniqueness
 const TOAST_CONTAINER_ID = "add-bill-toast-container";
@@ -52,7 +52,7 @@ const AddBill = () => {
             showMessage("Error loading group data", "error");
         }
     }
-}, [showMessage]);
+}, []);
 
     // Memoized toast function to prevent recreating on every render
     const showMessage = useCallback((message, type = "info") => {
