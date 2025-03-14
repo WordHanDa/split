@@ -361,7 +361,6 @@ const AddBill = () => {
                     <option value="">Select Method</option>
                     <option value="1">確切金額</option>
                     <option value="2">以百分比</option>
-                    <option value="3">均分</option>
                 </select>
                 
                 <input 
