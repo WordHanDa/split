@@ -166,6 +166,29 @@ app.get('/YOUR_RATE', (req, res) => {
     );
 });
 
+app.get('/YOUR_RATE/latest', (req, res) => {
+    const query = `
+        SELECT yr.*, u.user_name 
+        FROM YOUR_RATE yr
+        JOIN USER u ON yr.user_id = u.user_id
+        WHERE yr.your_rate_id IN (
+            SELECT MAX(your_rate_id)
+            FROM YOUR_RATE
+            GROUP BY user_id
+        )
+        ORDER BY yr.your_rate_id DESC
+    `;
+    
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error("Error fetching latest rates:", err);
+            res.status(500).json({ error: "Error fetching latest rates" });
+        } else {
+            res.json(results);
+        }
+    });
+});
+
 app.post('/createBill', (req, res) => {
     const { bill_name, amount, user_id, group_id, method, note, create_time, rate_id, credit_card, your_rate_id } = req.body;
 
@@ -214,94 +237,141 @@ app.get('/getUsersByGroupId', (req, res) => {
     );
 });
 
-// 修改現有的 createSplitRecord 端點：
-app.post('/createSplitRecord', (req, res) => {
-    const { bill_id, percentages } = req.body;
+// Update the createItem endpoint to handle multiple items
+app.post('/createItem', async (req, res) => {
+    const { bill_id, items } = req.body;
 
-    // 驗證輸入
-    if (!bill_id || !percentages || Object.keys(percentages).length === 0) {
-        console.error("缺少必要參數");
+    if (!bill_id || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({ 
             success: false,
-            message: "帳單ID和分帳比例都是必需的" 
+            message: "Bill ID and items array are required" 
         });
     }
 
     try {
-        // 檢查百分比總和是否為 100%
-        const totalPercentage = Object.values(percentages).reduce(
-            (sum, value) => sum + Number(parseFloat(value).toFixed(2)), 
-            0
-        );
+        // Delete any existing items for this bill
+        await new Promise((resolve, reject) => {
+            db.query(
+                "DELETE FROM ITEM_DETAIL WHERE bill_id = ?",
+                [bill_id],
+                (err) => err ? reject(err) : resolve()
+            );
+        });
 
-        if (Math.abs(totalPercentage - 10000) > 0.01) {
-            console.error(`總百分比不等於 100%: ${totalPercentage}%`);
-            return res.status(400).json({ 
-                success: false,
-                message: `分帳比例總和必須等於 100%，目前總和為: ${totalPercentage}%` 
+        // Insert all new items
+        for (const item of items) {
+            await new Promise((resolve, reject) => {
+                db.query(
+                    "INSERT INTO ITEM_DETAIL (item_amount, bill_id, user_id, item_name) VALUES (?, ?, ?, ?)",
+                    [item.item_amount, bill_id, item.user_id, item.item_name],
+                    (err) => err ? reject(err) : resolve()
+                );
             });
         }
 
-        // 先刪除舊記錄
+        res.json({ 
+            success: true,
+            message: "Items added successfully"
+        });
+
+    } catch (error) {
+        console.error("Error creating items:", error);
+        res.status(500).json({ 
+            success: false,
+            message: "Error creating items" 
+        });
+    }
+});
+
+// 修改現有的 createSplitRecord 端點：
+app.post('/createSplitRecord', (req, res) => {
+    const { bill_id, percentages } = req.body;
+
+    if (!bill_id || !percentages || Object.keys(percentages).length === 0) {
+        return res.status(400).json({ 
+            success: false,
+            message: "Bill ID and percentages are required" 
+        });
+    }
+
+    try {
+        let totalPercentage = 0;
+
+        // First pass: validate and sum percentages
+        for (const [userId, percentage] of Object.entries(percentages)) {
+            const parsedValue = parseInt(percentage, 10);
+            
+            if (isNaN(parsedValue) || parsedValue < 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Invalid percentage value for user ${userId}`
+                });
+            }
+
+            totalPercentage += parsedValue;
+        }
+
+        // Check if total equals 100
+        if (totalPercentage !== 10000) {
+            console.error(`Total percentage is not 100%: ${totalPercentage/100}%`);
+            return res.status(400).json({ 
+                success: false,
+                message: `Total percentage must be 100%, current total is: ${totalPercentage}%` 
+            });
+        }
+
+        // Delete existing records
         db.query(
             "DELETE FROM SPLIT_RECORD WHERE bill_id = ?",
             [bill_id],
             async (deleteErr) => {
                 if (deleteErr) {
-                    console.error("刪除舊記錄錯誤:", deleteErr);
+                    console.error("Error deleting old records:", deleteErr);
                     return res.status(500).json({ 
                         success: false,
-                        message: "刪除舊記錄時發生錯誤" 
+                        message: "Error deleting old records" 
                     });
                 }
 
                 try {
-                    // 逐一插入新記錄
+                    // Insert new records with original percentages
                     for (const [user_id, percentage] of Object.entries(percentages)) {
                         await new Promise((resolve, reject) => {
                             db.query(
                                 "INSERT INTO SPLIT_RECORD (bill_id, user_id, percentage) VALUES (?, ?, ?)",
-                                [
-                                    bill_id,
-                                    parseInt(user_id),
-                                    Number(parseFloat(percentage).toFixed(2))
-                                ],
+                                [bill_id, parseInt(user_id), parseInt(percentage)],
                                 (err, result) => {
-                                    if (err) {
-                                        reject(err);
-                                    } else {
-                                        resolve(result);
-                                    }
+                                    if (err) reject(err);
+                                    else resolve(result);
                                 }
                             );
                         });
                     }
 
-                    // 所有記錄插入成功
                     res.json({
                         success: true,
-                        message: "分帳比例記錄已成功新增",
+                        message: "Split records added successfully",
                         splitDetails: Object.entries(percentages).map(([user_id, percentage]) => ({
                             user_id,
-                            percentage: Number(parseFloat(percentage).toFixed(2))
+                            percentage: parseInt(percentage)
                         }))
                     });
 
                 } catch (insertError) {
-                    console.error("新增記錄錯誤:", insertError);
+                    console.error("Error inserting records:", insertError);
                     res.status(500).json({ 
                         success: false,
-                        message: "新增分帳記錄時發生錯誤" 
+                        message: "Error creating split records" 
                     });
                 }
             }
         );
 
     } catch (error) {
-        console.error("處理請求時發生錯誤:", error);
+        console.error("Error processing request:", error);
         res.status(500).json({ 
             success: false,
-            message: "處理請求時發生錯誤" 
+            message: "Error processing request" 
         });
     }
 });
