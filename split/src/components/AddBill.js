@@ -27,33 +27,6 @@ const AddBill = () => {
     const [getItemData, setGetItemData] = useState(null);
     const [processing, setProcessing] = useState(false);
     
-    // Load group and users on component mount
-    useEffect(() => {
-    // Load selected group from cookies
-    const savedGroup = Cookies.get('selectedGroup');
-    if (savedGroup) {
-        try {
-            const parsedGroup = JSON.parse(savedGroup);
-            setGroupId(parsedGroup.group_id);
-
-            // Get users list for the group
-            Axios.get(`${hostname}/getUsersByGroupId`, {
-                params: { group_id: parsedGroup.group_id }
-            })
-            .then(response => {
-                setUsers(response.data);
-            })
-            .catch(error => {
-                console.error("Error fetching users:", error);
-                showMessage("Error fetching users", "error");
-            });
-        } catch (error) {
-            console.error("Error parsing saved group from cookies:", error);
-            showMessage("Error loading group data", "error");
-        }
-    }
-}, [showMessage]);
-
     // Memoized toast function to prevent recreating on every render
     const showMessage = useCallback((message, type = "info") => {
         try {
@@ -88,6 +61,33 @@ const AddBill = () => {
             window.alert(message); // Use window.alert as a reliable fallback
         }
     }, []);
+    
+    // Load group and users on component mount
+    useEffect(() => {
+        // Load selected group from cookies
+        const savedGroup = Cookies.get('selectedGroup');
+        if (savedGroup) {
+            try {
+                const parsedGroup = JSON.parse(savedGroup);
+                setGroupId(parsedGroup.group_id);
+
+                // Get users list for the group
+                Axios.get(`${hostname}/getUsersByGroupId`, {
+                    params: { group_id: parsedGroup.group_id }
+                })
+                .then(response => {
+                    setUsers(response.data);
+                })
+                .catch(error => {
+                    console.error("Error fetching users:", error);
+                    showMessage("Error fetching users", "error");
+                });
+            } catch (error) {
+                console.error("Error parsing saved group from cookies:", error);
+                showMessage("Error loading group data", "error");
+            }
+        }
+    }, [showMessage]);
 
     // Handle method selection change
     const handleMethodChange = (e) => {
