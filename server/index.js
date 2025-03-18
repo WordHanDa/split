@@ -237,6 +237,182 @@ app.get('/getUsersByGroupId', (req, res) => {
     );
 });
 
+// Add this endpoint to calculate total amounts for users in a group using pure SQL
+app.get('/getGroupTotals', (req, res) => {
+    const { group_id } = req.query;
+
+    if (!group_id) {
+        return res.status(400).json({ 
+            success: false, 
+            message: "Group ID is required" 
+        });
+    }
+
+    // Get all users in the group first
+    const usersQuery = `
+        SELECT u.user_id, u.user_name 
+        FROM GROUP_USER gu 
+        JOIN USER u ON gu.user_id = u.user_id 
+        WHERE gu.group_id = ?
+    `;
+
+    db.query(usersQuery, [group_id], (err, users) => {
+        if (err) {
+            console.error("Error fetching users:", err);
+            return res.status(500).json({ 
+                success: false, 
+                message: "Error fetching users" 
+            });
+        }
+
+        if (users.length === 0) {
+            return res.json({
+                success: true,
+                message: "No users found in this group",
+                userTotals: []
+            });
+        }
+
+        // Complex SQL query that handles all calculations in the database
+        const query = `
+            -- Common Table Expression (CTE) for bills with their exchange rates
+            WITH BillsWithRates AS (
+                SELECT 
+                    b.bill_id,
+                    b.bill_name,
+                    b.amount,
+                    b.user_id AS payer_id,
+                    b.method,
+                    -- Calculate the rate to use based on credit_card flag
+                    CASE 
+                        WHEN b.credit_card = 1 THEN r.spot_rate
+                        ELSE (yr.NTD / yr.JPY)
+                    END AS rate_to_use
+                FROM 
+                    BILL_RECORD b
+                LEFT JOIN 
+                    RATE r ON b.rate_id = r.rate_id
+                LEFT JOIN 
+                    YOUR_RATE yr ON b.your_rate_id = yr.your_rate_id
+                WHERE 
+                    b.group_id = ?
+            ),
+            
+            -- CTE for bills paid by each user (with converted amounts)
+            BillsPaid AS (
+                SELECT 
+                    payer_id AS user_id,
+                    COUNT(*) AS bills_paid,
+                    SUM(amount * rate_to_use) AS total_paid
+                FROM 
+                    BillsWithRates
+                GROUP BY 
+                    payer_id
+            ),
+            
+            -- CTE for percentage-based split amounts
+            PercentageSplits AS (
+                SELECT 
+                    bwr.bill_id,
+                    bwr.payer_id,
+                    sr.user_id,
+                    bwr.amount * bwr.rate_to_use * (sr.percentage / 10000) AS user_amount,
+                    1 AS participated
+                FROM 
+                    BillsWithRates bwr
+                JOIN 
+                    SPLIT_RECORD sr ON bwr.bill_id = sr.bill_id
+                WHERE 
+                    bwr.method = 2
+            ),
+            
+            -- CTE for item-based split amounts
+            ItemSplits AS (
+                SELECT 
+                    bwr.bill_id,
+                    bwr.payer_id,
+                    id.user_id,
+                    id.item_amount * bwr.rate_to_use AS user_amount,
+                    1 AS participated
+                FROM 
+                    BillsWithRates bwr
+                JOIN 
+                    ITEM_DETAIL id ON bwr.bill_id = id.bill_id
+                WHERE 
+                    bwr.method = 1
+            ),
+            
+            -- Combine both types of splits
+            AllSplits AS (
+                SELECT * FROM PercentageSplits
+                UNION ALL
+                SELECT * FROM ItemSplits
+            ),
+            
+            -- Calculate amounts owed to each payer
+            OwedToPayers AS (
+                SELECT 
+                    payer_id AS user_id,
+                    SUM(CASE WHEN payer_id != user_id THEN user_amount ELSE 0 END) AS amount_to_receive
+                FROM 
+                    AllSplits
+                GROUP BY 
+                    payer_id
+            ),
+            
+            -- Calculate amounts owed by each participant
+            OwedByParticipants AS (
+                SELECT 
+                    user_id,
+                    SUM(CASE WHEN payer_id != user_id THEN user_amount ELSE 0 END) AS amount_to_pay,
+                    COUNT(DISTINCT bill_id) AS bills_participated
+                FROM 
+                    AllSplits
+                GROUP BY 
+                    user_id
+            )
+            
+            -- Final result combining all the above calculations
+            SELECT 
+                u.user_id,
+                u.user_name,
+                COALESCE(bp.bills_paid, 0) AS bills_paid,
+                COALESCE(obp.bills_participated, 0) AS bills_participated,
+                ROUND(
+                    (COALESCE(otp.amount_to_receive, 0) - COALESCE(obp.amount_to_pay, 0)), 
+                    2
+                ) AS total_amount
+            FROM 
+                USER u
+            JOIN 
+                GROUP_USER gu ON u.user_id = gu.user_id AND gu.group_id = ?
+            LEFT JOIN 
+                BillsPaid bp ON u.user_id = bp.user_id
+            LEFT JOIN 
+                OwedToPayers otp ON u.user_id = otp.user_id
+            LEFT JOIN 
+                OwedByParticipants obp ON u.user_id = obp.user_id
+            ORDER BY 
+                u.user_name
+        `;
+        
+        db.query(query, [group_id, group_id], (err, results) => {
+            if (err) {
+                console.error("SQL Error calculating totals:", err);
+                return res.status(500).json({ 
+                    success: false, 
+                    message: "Error calculating totals", 
+                    error: err.message 
+                });
+            }
+            
+            res.json({
+                success: true,
+                userTotals: results
+            });
+        });
+    });
+});
 // Update the createItem endpoint to handle multiple items
 app.post('/createItem', async (req, res) => {
     const { bill_id, items } = req.body;
