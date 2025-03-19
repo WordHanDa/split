@@ -167,19 +167,30 @@ app.get('/YOUR_RATE', (req, res) => {
 });
 
 app.get('/YOUR_RATE/latest', (req, res) => {
+    const group_id = req.query.group_id;
+    
+    if (!group_id) {
+        return res.status(400).json({ error: "group_id is required" });
+    }
+    
     const query = `
         SELECT yr.*, u.user_name 
         FROM YOUR_RATE yr
         JOIN USER u ON yr.user_id = u.user_id
-        WHERE yr.your_rate_id IN (
+        JOIN GROUP_USER gu ON yr.user_id = gu.user_id
+        WHERE gu.group_id = ?
+        AND yr.your_rate_id IN (
             SELECT MAX(your_rate_id)
             FROM YOUR_RATE
+            WHERE user_id IN (
+                SELECT user_id FROM GROUP_USER WHERE group_id = ?
+            )
             GROUP BY user_id
         )
         ORDER BY yr.your_rate_id DESC
     `;
     
-    db.query(query, (err, results) => {
+    db.query(query, [group_id, group_id], (err, results) => {
         if (err) {
             console.error("Error fetching latest rates:", err);
             res.status(500).json({ error: "Error fetching latest rates" });
