@@ -1,13 +1,11 @@
 import React from 'react';
-import AddUser from '../components/AddUser';
-import ShowUser from '../components/ShowUser';
+import ShowResult from '../components/ShowResult';
 
 const ResultPage = () => {
     return (
         <div>
-            <h1>User Management</h1>
-            <AddUser />
-            <ShowUser />
+            <h1>Result</h1>
+            <ShowResult />
         </div>
     );
 };
