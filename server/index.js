@@ -459,7 +459,333 @@ app.post('/createItem', async (req, res) => {
     }
 });
 
-// 修改現有的 createSplitRecord 端點：
+// Add these endpoints to your existing Express server
+
+// Endpoint to calculate what each user has advanced (paid)
+app.get('/total_advance', (req, res) => {
+    const { group_id } = req.query;
+
+    if (!group_id) {
+        return res.status(400).json({ 
+            success: false, 
+            message: "Group ID is required" 
+        });
+    }
+
+    const query = `
+        WITH BillsWithRates AS (
+            SELECT 
+                b.bill_id,
+                b.bill_name,
+                b.amount,
+                b.user_id AS payer_id,
+                b.method,
+                -- Use fixed rate of 0.22 as requested in the example
+                0.22 AS rate_to_use
+            FROM 
+                BILL_RECORD b
+            WHERE 
+                b.group_id = ?
+        ),
+        
+        -- Calculate total advances (what each user paid)
+        UserAdvances AS (
+            SELECT 
+                payer_id AS user_id,
+                SUM(amount * rate_to_use) AS total_advanced,
+                COUNT(*) AS bills_paid
+            FROM 
+                BillsWithRates
+            GROUP BY 
+                payer_id
+        )
+        
+        -- Final result: total advances for each user in the group
+        SELECT 
+            u.user_id,
+            u.user_name,
+            COALESCE(ua.total_advanced, 0) AS total_cost,
+            COALESCE(ua.bills_paid, 0) AS bill_paid
+        FROM 
+            USER u
+        JOIN 
+            GROUP_USER gu ON u.user_id = gu.user_id AND gu.group_id = ?
+        LEFT JOIN 
+            UserAdvances ua ON u.user_id = ua.user_id
+        ORDER BY 
+            u.user_name
+    `;
+    
+    db.query(query, [group_id, group_id], (err, results) => {
+        if (err) {
+            console.error("SQL Error calculating advances:", err);
+            return res.status(500).json({ 
+                success: false, 
+                message: "Error calculating advances", 
+                error: err.message 
+            });
+        }
+        
+        const formattedResults = results.map(user => ({
+            ...user,
+            total_cost: Math.round(user.total_cost * 100) / 100
+        }));
+        
+        res.json({
+            success: true,
+            userAdvances: formattedResults
+        });
+    });
+});
+
+// Endpoint to calculate the total cost for each user in a group (what they consumed)
+app.get('/total_cost', (req, res) => {
+    const { group_id } = req.query;
+
+    if (!group_id) {
+        return res.status(400).json({ 
+            success: false, 
+            message: "Group ID is required" 
+        });
+    }
+
+    const query = `
+        WITH BillsWithRates AS (
+            SELECT 
+                b.bill_id,
+                b.amount AS bill_amount,
+                b.method,
+                -- Use fixed rate of 0.22 as requested
+                0.22 AS rate_to_use
+            FROM 
+                BILL_RECORD b
+            WHERE 
+                b.group_id = ?
+        ),
+        
+        -- Calculate costs from percentage-based splits
+        SplitCosts AS (
+            SELECT 
+                sr.user_id,
+                SUM(bwr.bill_amount * (sr.percentage / 10000) * bwr.rate_to_use) AS split_cost
+            FROM 
+                BillsWithRates bwr
+            JOIN 
+                SPLIT_RECORD sr ON bwr.bill_id = sr.bill_id
+            WHERE 
+                bwr.method = 2
+            GROUP BY 
+                sr.user_id
+        ),
+        
+        -- Calculate costs from item-based bills
+        ItemCosts AS (
+            SELECT 
+                id.user_id,
+                SUM(id.item_amount * bwr.rate_to_use) AS item_cost
+            FROM 
+                BillsWithRates bwr
+            JOIN 
+                ITEM_DETAIL id ON bwr.bill_id = id.bill_id
+            WHERE 
+                bwr.method = 1
+            GROUP BY 
+                id.user_id
+        ),
+        
+        -- Combine both types of costs using UNION ALL and GROUP BY
+        CombinedCosts AS (
+            SELECT 
+                user_id,
+                SUM(cost_amount) AS total_cost
+            FROM (
+                SELECT user_id, split_cost AS cost_amount FROM SplitCosts
+                UNION ALL
+                SELECT user_id, item_cost AS cost_amount FROM ItemCosts
+            ) AS all_costs
+            GROUP BY 
+                user_id
+        )
+        
+        -- Final result joining with user data
+        SELECT 
+            u.user_id,
+            u.user_name,
+            COALESCE(cc.total_cost, 0) AS total_cost
+        FROM 
+            USER u
+        JOIN 
+            GROUP_USER gu ON u.user_id = gu.user_id AND gu.group_id = ?
+        LEFT JOIN 
+            CombinedCosts cc ON u.user_id = cc.user_id
+        ORDER BY 
+            u.user_name
+    `;
+    
+    db.query(query, [group_id, group_id], (err, results) => {
+        if (err) {
+            console.error("SQL Error calculating costs:", err);
+            return res.status(500).json({ 
+                success: false, 
+                message: "Error calculating costs", 
+                error: err.message 
+            });
+        }
+        
+        // Round the total_cost to 2 decimal places
+        const formattedResults = results.map(user => ({
+            ...user,
+            total_cost: Math.round(user.total_cost * 100) / 100
+        }));
+        
+        res.json({
+            success: true,
+            userCosts: formattedResults
+        });
+    });
+});
+app.get('/group_balance', (req, res) => {
+    const { group_id } = req.query;
+
+    if (!group_id) {
+        return res.status(400).json({ 
+            success: false, 
+            message: "Group ID is required" 
+        });
+    }
+
+    const query = `
+        WITH BillsWithRates AS (
+            SELECT 
+                b.bill_id,
+                b.amount,
+                b.user_id AS payer_id,
+                b.method,
+                -- Use fixed rate of 0.22 as requested
+                0.22 AS rate_to_use
+            FROM 
+                BILL_RECORD b
+            WHERE 
+                b.group_id = ?
+        ),
+        
+        -- Calculate total advances (what each user paid)
+        UserAdvances AS (
+            SELECT 
+                payer_id AS user_id,
+                SUM(amount * rate_to_use) AS total_advanced,
+                COUNT(*) AS bills_paid
+            FROM 
+                BillsWithRates
+            GROUP BY 
+                payer_id
+        ),
+        
+        -- Calculate costs from percentage-based splits
+        SplitCosts AS (
+            SELECT 
+                sr.user_id,
+                SUM(bwr.amount * (sr.percentage / 10000) * bwr.rate_to_use) AS split_cost
+            FROM 
+                BillsWithRates bwr
+            JOIN 
+                SPLIT_RECORD sr ON bwr.bill_id = sr.bill_id
+            WHERE 
+                bwr.method = 2
+            GROUP BY 
+                sr.user_id
+        ),
+        
+        -- Calculate costs from item-based bills
+        ItemCosts AS (
+            SELECT 
+                id.user_id,
+                SUM(id.item_amount * bwr.rate_to_use) AS item_cost
+            FROM 
+                BillsWithRates bwr
+            JOIN 
+                ITEM_DETAIL id ON bwr.bill_id = id.bill_id
+            WHERE 
+                bwr.method = 1
+            GROUP BY 
+                id.user_id
+        ),
+        
+        -- Combine both types of costs using UNION ALL instead of FULL OUTER JOIN
+        UserCosts AS (
+            SELECT 
+                user_id,
+                SUM(cost) AS total_cost
+            FROM (
+                SELECT user_id, split_cost AS cost FROM SplitCosts
+                UNION ALL
+                SELECT user_id, item_cost AS cost FROM ItemCosts
+            ) AS all_costs
+            GROUP BY user_id
+        )
+        
+        -- Final result: balance for each user (advance - cost)
+        SELECT 
+            u.user_id,
+            u.user_name,
+            COALESCE(ua.total_advanced, 0) AS total_advanced,
+            COALESCE(uc.total_cost, 0) AS total_cost,
+            COALESCE(ua.bills_paid, 0) AS bills_paid,
+            ROUND(
+                COALESCE(ua.total_advanced, 0) - COALESCE(uc.total_cost, 0),
+                2
+            ) AS balance
+        FROM 
+            USER u
+        JOIN 
+            GROUP_USER gu ON u.user_id = gu.user_id AND gu.group_id = ?
+        LEFT JOIN 
+            UserAdvances ua ON u.user_id = ua.user_id
+        LEFT JOIN 
+            UserCosts uc ON u.user_id = uc.user_id
+        ORDER BY 
+            balance DESC
+    `;
+    
+    db.query(query, [group_id, group_id], (err, results) => {
+        if (err) {
+            console.error("SQL Error calculating balance:", err);
+            return res.status(500).json({ 
+                success: false, 
+                message: "Error calculating balance", 
+                error: err.message 
+            });
+        }
+        
+        // Format the numbers
+        const formattedResults = results.map(user => ({
+            ...user,
+            total_advanced: Math.round(user.total_advanced * 100) / 100,
+            total_cost: Math.round(user.total_cost * 100) / 100,
+            balance: Math.round(user.balance * 100) / 100
+        }));
+        
+        // Calculate group totals
+        const groupTotal = formattedResults.reduce(
+            (acc, user) => {
+                acc.total_advanced += user.total_advanced;
+                acc.total_cost += user.total_cost;
+                return acc;
+            },
+            { total_advanced: 0, total_cost: 0 }
+        );
+        
+        res.json({
+            success: true,
+            userBalances: formattedResults,
+            groupTotals: {
+                total_advanced: Math.round(groupTotal.total_advanced * 100) / 100,
+                total_cost: Math.round(groupTotal.total_cost * 100) / 100
+            }
+        });
+    });
+});
+
 app.post('/createSplitRecord', (req, res) => {
     const { bill_id, percentages } = req.body;
 
