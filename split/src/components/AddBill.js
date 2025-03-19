@@ -7,7 +7,7 @@ import AddSplit from './AddSplit';
 import AddItem from './AddItem';
 
 // Define the hostname for API calls
-const hostname = "http://120.126.16.20:3002";
+const hostname = "http://macbook-pro.local:3002";
 
 // Create a global toast container ID to ensure uniqueness
 const TOAST_CONTAINER_ID = "add-bill-toast-container";
@@ -27,33 +27,6 @@ const AddBill = () => {
     const [getItemData, setGetItemData] = useState(null);
     const [processing, setProcessing] = useState(false);
     
-    // Load group and users on component mount
-    useEffect(() => {
-    // Load selected group from cookies
-    const savedGroup = Cookies.get('selectedGroup');
-    if (savedGroup) {
-        try {
-            const parsedGroup = JSON.parse(savedGroup);
-            setGroupId(parsedGroup.group_id);
-
-            // Get users list for the group
-            Axios.get(`${hostname}/getUsersByGroupId`, {
-                params: { group_id: parsedGroup.group_id }
-            })
-            .then(response => {
-                setUsers(response.data);
-            })
-            .catch(error => {
-                console.error("Error fetching users:", error);
-                showMessage("Error fetching users", "error");
-            });
-        } catch (error) {
-            console.error("Error parsing saved group from cookies:", error);
-            showMessage("Error loading group data", "error");
-        }
-    }
-}, []);
-
     // Memoized toast function to prevent recreating on every render
     const showMessage = useCallback((message, type = "info") => {
         try {
@@ -88,6 +61,33 @@ const AddBill = () => {
             window.alert(message); // Use window.alert as a reliable fallback
         }
     }, []);
+    
+    // Load group and users on component mount
+    useEffect(() => {
+        // Load selected group from cookies
+        const savedGroup = Cookies.get('selectedGroup');
+        if (savedGroup) {
+            try {
+                const parsedGroup = JSON.parse(savedGroup);
+                setGroupId(parsedGroup.group_id);
+
+                // Get users list for the group
+                Axios.get(`${hostname}/getUsersByGroupId`, {
+                    params: { group_id: parsedGroup.group_id }
+                })
+                .then(response => {
+                    setUsers(response.data);
+                })
+                .catch(error => {
+                    console.error("Error fetching users:", error);
+                    showMessage("Error fetching users", "error");
+                });
+            } catch (error) {
+                console.error("Error parsing saved group from cookies:", error);
+                showMessage("Error loading group data", "error");
+            }
+        }
+    }, [showMessage]);
 
     // Handle method selection change
     const handleMethodChange = (e) => {
@@ -361,7 +361,6 @@ const AddBill = () => {
                     <option value="">Select Method</option>
                     <option value="1">確切金額</option>
                     <option value="2">以百分比</option>
-                    <option value="3">均分</option>
                 </select>
                 
                 <input 

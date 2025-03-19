@@ -7,9 +7,9 @@ const RatePage = () => {
     return (
         <div>
             <h1>Rate Management</h1>
-            <AddRate />
             <ShowRate />
-            <ShowYourRate/>
+            <ShowYourRate />
+            <AddRate />
         </div>
     );
 };
