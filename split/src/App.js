@@ -42,11 +42,11 @@ const App = () => {
                 </nav>
                 {selectedGroup && (
                     <div>
-                        <div>{selectedGroup.group_name}</div>
+                        <div>current group: {selectedGroup.group_name}</div>
                     </div>
                 )}
                 <Routes>
-                    <Route path="/group" element={<GroupPage onGroupSelect={handleGroupSelect} />} />
+                    <Route path="/group" element={<GroupPage onGroupSelect={handleGroupSelect}/>} />
                     <Route path="/rate" element={<RatePage />} />
                     <Route path="/user" element={<UserPage />} />
                     <Route path="/bill" element={<BillPage />} />
