@@ -72,6 +72,81 @@ app.post('/createUser', (req, res) => {
     );
 });
 
+app.put('/updateUser', (req, res) => {
+    const { user_id, name } = req.body;
+    
+    if (!user_id) {
+        return res.status(400).json({ error: "user_id is required" });
+    }
+    
+    if (!name || name.trim() === "") {
+        return res.status(400).json({ error: "user_name cannot be empty" });
+    }
+
+    db.query(
+        "UPDATE USER SET user_name = ? WHERE user_id = ?",
+        [name, user_id],
+        (err, result) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                return res.status(500).json({ error: "Database error" });
+            }
+            
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ error: "User not found" });
+            }
+            
+            res.json({ 
+                success: true,
+                message: "User updated successfully", 
+                result 
+            });
+        }
+    );
+});
+
+app.delete('/deleteUser', (req, res) => {
+    const { user_id } = req.body;
+    
+    if (!user_id) {
+        return res.status(400).json({ error: "user_id is required" });
+    }
+
+    // First check if user exists
+    db.query(
+        "SELECT * FROM USER WHERE user_id = ?",
+        [user_id],
+        (err, results) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                return res.status(500).json({ error: "Database error" });
+            }
+            
+            if (results.length === 0) {
+                return res.status(404).json({ error: "User not found" });
+            }
+            
+            // User exists, proceed with deletion
+            db.query(
+                "DELETE FROM USER WHERE user_id = ?",
+                [user_id],
+                (err, result) => {
+                    if (err) {
+                        console.error("MySQL Error:", err);
+                        return res.status(500).json({ error: "Database error" });
+                    }
+                    
+                    res.json({ 
+                        success: true,
+                        message: "User deleted successfully", 
+                        result 
+                    });
+                }
+            );
+        }
+    );
+});
+
 app.post('/createGroup', (req, res) => {
     const name = req.body.name;
     
