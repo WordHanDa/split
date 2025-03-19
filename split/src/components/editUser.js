@@ -6,7 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 const hostname = "http://macbook-pro.local:3002";
 
-const UpdateUser = () => {
+const EditUser = () => {
     const [users, setUsers] = useState([]);
     const [selectedUser, setSelectedUser] = useState('');
     const [newName, setNewName] = useState('');
@@ -167,4 +167,4 @@ const UpdateUser = () => {
     );
 };
 
-export default UpdateUser;
+export default EditUser;

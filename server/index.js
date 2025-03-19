@@ -167,6 +167,83 @@ app.post('/createGroup', (req, res) => {
     );
 });
 
+// Update group name
+app.put('/updateGroup', (req, res) => {
+    const { group_id, name } = req.body;
+    
+    if (!group_id) {
+        return res.status(400).json({ error: "group_id is required" });
+    }
+    
+    if (!name || name.trim() === "") {
+        return res.status(400).json({ error: "group_name cannot be empty" });
+    }
+
+    db.query(
+        "UPDATE GROUP_TABLE SET group_name = ? WHERE group_id = ?",
+        [name, group_id],
+        (err, result) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                return res.status(500).json({ error: "Database error" });
+            }
+            
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ error: "Group not found" });
+            }
+            
+            res.json({ 
+                success: true,
+                message: "Group updated successfully", 
+                result 
+            });
+        }
+    );
+});
+
+// Delete group
+app.delete('/deleteGroup', (req, res) => {
+    const { group_id } = req.body;
+    
+    if (!group_id) {
+        return res.status(400).json({ error: "group_id is required" });
+    }
+
+    // First check if group exists
+    db.query(
+        "SELECT * FROM GROUP_TABLE WHERE group_id = ?",
+        [group_id],
+        (err, results) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                return res.status(500).json({ error: "Database error" });
+            }
+            
+            if (results.length === 0) {
+                return res.status(404).json({ error: "Group not found" });
+            }
+            
+            // Group exists, proceed with deletion
+            db.query(
+                "DELETE FROM GROUP_TABLE WHERE group_id = ?",
+                [group_id],
+                (err, result) => {
+                    if (err) {
+                        console.error("MySQL Error:", err);
+                        return res.status(500).json({ error: "Database error" });
+                    }
+                    
+                    res.json({ 
+                        success: true,
+                        message: "Group deleted successfully", 
+                        result 
+                    });
+                }
+            );
+        }
+    );
+});
+
 app.post('/addGroupUser', (req, res) => {
     const { group_id, user_id } = req.body;
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import AddUser from '../components/AddUser';
 import ShowUser from '../components/ShowUser';
-import UpdateUser from '../components/editUser';
+import EditUser from '../components/EditUser';
 
 const UserPage = () => {
     return (
