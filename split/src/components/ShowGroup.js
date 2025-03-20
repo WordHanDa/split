@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Axios from 'axios';
 import AddGroupUser from './AddGroupUser';
 
-let hostname = "http://120.126.16.20:3002";
+let hostname = "http://120.126.16.21:3002";
 
 const ShowGroup = ({ onGroupSelect }) => {
     const [groupList, setGroupList] = useState([]);
