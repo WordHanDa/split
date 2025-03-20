@@ -84,7 +84,7 @@ const EditGroupUser = () => {
                         onChange={(e) => setSelectedUser(e.target.value)}
                         disabled={loading}
                     >
-                        <option value="">選擇成員</option>
+                        <option value="">Select a user</option>
                         {users.map(user => (
                             <option key={user.user_id} value={user.user_id}>
                                 {user.user_name}
@@ -97,7 +97,7 @@ const EditGroupUser = () => {
                         onClick={handleDeleteUser}
                         disabled={!selectedUser || loading}
                     >
-                        {loading ? "移除中..." : "移除成員"}
+                        {loading ? "Deleting..." : "Delete User"}
                     </button>
                 </>
             )}
