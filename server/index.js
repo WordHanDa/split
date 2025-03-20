@@ -244,6 +244,60 @@ app.delete('/deleteGroup', (req, res) => {
     );
 });
 
+// Delete group endpoint
+app.delete('/api/groups/:groupId', (req, res) => {
+    const groupId = req.params.groupId;
+    
+    if (!groupId) {
+        return res.status(400).json({ 
+            success: false,
+            error: "Group ID is required" 
+        });
+    }
+
+    // First check if group exists
+    db.query(
+        "SELECT * FROM GROUP_TABLE WHERE group_id = ?",
+        [groupId],
+        (err, results) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                return res.status(500).json({ 
+                    success: false,
+                    error: "Database error" 
+                });
+            }
+            
+            if (results.length === 0) {
+                return res.status(404).json({ 
+                    success: false,
+                    error: "Group not found" 
+                });
+            }
+            
+            // Group exists, proceed with deletion
+            db.query(
+                "DELETE FROM GROUP_TABLE WHERE group_id = ?",
+                [groupId],
+                (err, result) => {
+                    if (err) {
+                        console.error("MySQL Error:", err);
+                        return res.status(500).json({ 
+                            success: false,
+                            error: "Database error" 
+                        });
+                    }
+                    
+                    res.json({ 
+                        success: true,
+                        message: "Group deleted successfully" 
+                    });
+                }
+            );
+        }
+    );
+});
+
 app.post('/addGroupUser', (req, res) => {
     const { group_id, user_id } = req.body;
 

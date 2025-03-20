@@ -9,7 +9,7 @@ const UserPage = () => {
             <h1>User Management</h1>
             <AddUser />
             <ShowUser />
-            <UpdateUser />
+            <EditUser />
         </div>
     );
 };
