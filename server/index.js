@@ -147,7 +147,6 @@ app.post('/createGroup', (req, res) => {
     );
 });
 
-// Update group name
 app.put('/updateGroup', (req, res) => {
     const { group_id, name } = req.body;
     
@@ -181,7 +180,6 @@ app.put('/updateGroup', (req, res) => {
     );
 });
 
-// Delete group
 app.delete('/deleteGroup', (req, res) => {
     const { group_id } = req.body;
     
@@ -224,7 +222,6 @@ app.delete('/deleteGroup', (req, res) => {
     );
 });
 
-// Delete group endpoint
 app.delete('/api/groups/:groupId', (req, res) => {
     const groupId = req.params.groupId;
     
@@ -312,47 +309,7 @@ app.post('/addGroupUser', (req, res) => {
     );
 });
 
-app.put('/updateRate', (req, res) => {
-    const { id, JPY, NTD, user_id } = req.body;
-    
-    if (!id) {
-      return res.status(400).json({ error: "Rate id is required" });
-    }
-    
-    if (!JPY || !NTD || !user_id || JPY.trim() === "" || NTD.trim() === "") {
-      return res.status(400).json({ error: "JPY, NTD rates and user_id cannot be empty" });
-    }
-    
-    db.query(
-      "SELECT * FROM YOUR_RATE WHERE your_rate_id = ?",
-      [id],
-      (err, results) => {
-        if (err) {
-          console.error("MySQL Error:", err);
-          return res.status(500).json({ error: "Database error" });
-        }
-        
-        if (results.length === 0) {
-          return res.status(404).json({ error: "Rate not found" });
-        }
-        
-        db.query(
-          "UPDATE YOUR_RATE SET JPY = ?, NTD = ?, user_id = ? WHERE your_rate_id = ?",
-          [JPY, NTD, user_id, id],
-          (err, result) => {
-            if (err) {
-              console.error("MySQL Error:", err);
-              return res.status(500).json({ error: "Database error" });
-            }
-            
-            res.json({ success: true, message: "Rate updated successfully", result });
-          }
-        );
-      }
-    );
-  });
-
-  app.delete('/removeGroupUser', (req, res) => {
+app.delete('/removeGroupUser', (req, res) => {
     const { group_id, user_id } = req.body;
     
     if (!group_id || !user_id) {
@@ -435,7 +392,6 @@ app.put('/updateRate', (req, res) => {
     );
   });
 
-
 app.get('/GROUP', (req, res) => {
     db.query("SELECT * FROM `GROUP_TABLE`", (err, results) => {
         if (err) {
@@ -472,6 +428,59 @@ app.get('/YOUR_RATE', (req, res) => {
             } else {
                 res.json(results);
             }
+        }
+    );
+});
+
+app.put('/updateRate', (req, res) => {
+    const { id, JPY, NTD, user_id } = req.body;
+    
+    if (!id) {
+        return res.status(400).json({ error: "Rate id is required" });
+    }
+    
+    // Validate and convert numeric values
+    const parsedJPY = parseFloat(JPY);
+    const parsedNTD = parseFloat(NTD);
+    const parsedUserId = parseInt(user_id);
+
+    if (isNaN(parsedJPY) || isNaN(parsedNTD) || isNaN(parsedUserId)) {
+        return res.status(400).json({ error: "Invalid JPY, NTD, or user_id values" });
+    }
+
+    if (parsedJPY <= 0 || parsedNTD <= 0) {
+        return res.status(400).json({ error: "JPY and NTD must be greater than 0" });
+    }
+    
+    db.query(
+        "SELECT * FROM YOUR_RATE WHERE your_rate_id = ?",
+        [id],
+        (err, results) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                return res.status(500).json({ error: "Database error" });
+            }
+            
+            if (results.length === 0) {
+                return res.status(404).json({ error: "Rate not found" });
+            }
+            
+            db.query(
+                "UPDATE YOUR_RATE SET JPY = ?, NTD = ?, user_id = ? WHERE your_rate_id = ?",
+                [parsedJPY, parsedNTD, parsedUserId, id],
+                (err, result) => {
+                    if (err) {
+                        console.error("MySQL Error:", err);
+                        return res.status(500).json({ error: "Database error" });
+                    }
+                    
+                    res.json({ 
+                        success: true, 
+                        message: "Rate updated successfully", 
+                        result 
+                    });
+                }
+            );
         }
     );
 });
@@ -592,6 +601,48 @@ app.get('/YOUR_RATE/latest', (req, res) => {
     });
 });
 
+app.get('/YOUR_RATE/user', (req, res) => {
+  const user_id = req.query.user_id;
+  
+  if (!user_id) {
+    return res.status(400).json({
+      success: false,
+      error: "user_id parameter is required"
+    });
+  }
+  
+  const query = `
+    SELECT yr.*, u.user_name
+    FROM YOUR_RATE yr
+    JOIN USER u ON yr.user_id = u.user_id
+    WHERE yr.user_id = ?
+    ORDER BY yr.your_rate_id DESC
+  `;
+  
+  db.query(query, [user_id], (err, results) => {
+    if (err) {
+      console.error("Error fetching user rates:", err);
+      return res.status(500).json({
+        success: false,
+        error: "Error fetching user rates"
+      });
+    }
+    
+    if (results.length === 0) {
+      return res.json({
+        success: true,
+        message: "No rates found for this user",
+        rates: []
+      });
+    }
+    
+    res.json({
+      success: true,
+      rates: results  // Return all results instead of just the first one
+    });
+  });
+});
+
 app.post('/createBill', (req, res) => {
     const { bill_name, amount, user_id, group_id, method, note, create_time, rate_id, credit_card, your_rate_id } = req.body;
 
@@ -640,7 +691,6 @@ app.get('/getUsersByGroupId', (req, res) => {
     );
 });
 
-// Add this endpoint to calculate total amounts for users in a group using pure SQL
 app.get('/getGroupTotals', (req, res) => {
     const { group_id } = req.query;
 
@@ -816,7 +866,6 @@ app.get('/getGroupTotals', (req, res) => {
         });
     });
 });
-// Update the createItem endpoint to handle multiple items
 app.post('/createItem', async (req, res) => {
     const { bill_id, items } = req.body;
 
@@ -862,9 +911,6 @@ app.post('/createItem', async (req, res) => {
     }
 });
 
-// Add these endpoints to your existing Express server
-
-// Endpoint to calculate what each user has advanced (paid)
 app.get('/total_advance', (req, res) => {
     const { group_id } = req.query;
 
@@ -883,10 +929,17 @@ app.get('/total_advance', (req, res) => {
                 b.amount,
                 b.user_id AS payer_id,
                 b.method,
-                -- Use fixed rate of 0.22 as requested in the example
-                0.22 AS rate_to_use
+                -- Calculate the rate to use based on credit_card flag
+                CASE 
+                    WHEN b.credit_card = 1 THEN r.spot_rate/10000
+                    ELSE (yr.JPY / yr.NTD)/10000
+                END AS rate_to_use
             FROM 
                 BILL_RECORD b
+            LEFT JOIN 
+                RATE r ON b.rate_id = r.rate_id
+            LEFT JOIN 
+                YOUR_RATE yr ON b.your_rate_id = yr.your_rate_id
             WHERE 
                 b.group_id = ?
         ),
@@ -941,7 +994,6 @@ app.get('/total_advance', (req, res) => {
     });
 });
 
-// Endpoint to calculate the total cost for each user in a group (what they consumed)
 app.get('/total_cost', (req, res) => {
     const { group_id } = req.query;
 
@@ -958,10 +1010,17 @@ app.get('/total_cost', (req, res) => {
                 b.bill_id,
                 b.amount AS bill_amount,
                 b.method,
-                -- Use fixed rate of 0.22 as requested
-                0.22 AS rate_to_use
+                -- Calculate the rate to use based on credit_card flag
+                CASE 
+                    WHEN b.credit_card = 1 THEN r.spot_rate/10000
+                    ELSE (yr.NTD / yr.JPY)/10000
+                END AS rate_to_use
             FROM 
                 BILL_RECORD b
+            LEFT JOIN 
+                RATE r ON b.rate_id = r.rate_id
+            LEFT JOIN 
+                YOUR_RATE yr ON b.your_rate_id = yr.your_rate_id
             WHERE 
                 b.group_id = ?
         ),
@@ -1047,6 +1106,7 @@ app.get('/total_cost', (req, res) => {
         });
     });
 });
+
 app.get('/group_balance', (req, res) => {
     const { group_id } = req.query;
 
@@ -1064,10 +1124,17 @@ app.get('/group_balance', (req, res) => {
                 b.amount,
                 b.user_id AS payer_id,
                 b.method,
-                -- Use fixed rate of 0.22 as requested
-                0.22 AS rate_to_use
+                -- Calculate the rate to use based on credit_card flag
+                CASE 
+                    WHEN b.credit_card = 1 THEN r.spot_rate/10000
+                    ELSE (yr.NTD / yr.JPY)/10000
+                END AS rate_to_use
             FROM 
                 BILL_RECORD b
+            LEFT JOIN 
+                RATE r ON b.rate_id = r.rate_id
+            LEFT JOIN 
+                YOUR_RATE yr ON b.your_rate_id = yr.your_rate_id
             WHERE 
                 b.group_id = ?
         ),

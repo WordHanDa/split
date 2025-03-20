@@ -46,16 +46,32 @@ const EditRate = () => {
 
     const fetchUserRates = async (uid) => {
         try {
+            setLoading(true);
             const response = await Axios.get(`${hostname}/YOUR_RATE/user`, {
                 params: { user_id: uid }
             });
-            setUserRates(response.data.data || []);
+            
+            if (response.data.success) {
+                if (response.data.rates && response.data.rates.length > 0) {
+                    setUserRates(response.data.rates);
+                } else {
+                    setUserRates([]);
+                    toast.info("此使用者尚未設定匯率");
+                }
+            } else {
+                setUserRates([]);
+                toast.error("取得匯率資料失敗");
+            }
+            
             setSelectedRate(null);
             setJPY("");
             setNTD("");
         } catch (error) {
             console.error("Error fetching user rates:", error);
             toast.error("無法取得使用者匯率資料");
+            setUserRates([]);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -78,6 +94,11 @@ const EditRate = () => {
         }
     };
 
+    const calculateExchangeRate = (jpy, ntd) => {
+        if (!jpy || !ntd) return "0.00";
+        return (parseFloat(ntd) / parseFloat(jpy)).toFixed(4);
+    };
+
     const handleUpdateRate = async () => {
         if (!selectedRate || !userId) {
             toast.error("請選擇要更新的匯率");
@@ -89,21 +110,23 @@ const EditRate = () => {
             return;
         }
 
+        if (parseFloat(JPY) <= 0 || parseFloat(NTD) <= 0) {
+            toast.error("金額必須大於0");
+            return;
+        }
+
         setLoading(true);
         try {
             const response = await Axios.put(`${hostname}/updateRate`, {
                 id: selectedRate.your_rate_id,
-                JPY,
-                NTD,
+                JPY: parseFloat(JPY),
+                NTD: parseFloat(NTD),
                 user_id: parseInt(userId)
             });
 
             if (response.data.success) {
                 toast.success("匯率更新成功");
-                fetchUserRates(userId);
-                setSelectedRate(null);
-                setJPY("");
-                setNTD("");
+                await fetchUserRates(userId);
             }
         } catch (error) {
             console.error("Error updating rate:", error);
@@ -115,7 +138,15 @@ const EditRate = () => {
 
     return (
         <div className="edit-rate-container">
-            <h3>Update Your Rate</h3>
+            <div className="rate-header">
+                <h3>更新匯率</h3>
+                {selectedRate && (
+                    <div className="current-rate">
+                        當前匯率: 1 JPY = {calculateExchangeRate(JPY, NTD)} NTD
+                    </div>
+                )}
+            </div>
+
             {!groupId ? (
                 <div className="no-group-message">請先選擇群組</div>
             ) : (
@@ -124,6 +155,7 @@ const EditRate = () => {
                         value={userId}
                         onChange={(e) => handleUserSelect(e.target.value)}
                         disabled={loading}
+                        className="user-select"
                     >
                         <option value="">選擇使用者</option>
                         {users.map(user => (
@@ -133,45 +165,66 @@ const EditRate = () => {
                         ))}
                     </select>
 
-                    {userId && (
-                        <select
-                            value={selectedRate?.your_rate_id || ""}
-                            onChange={(e) => handleRateSelect(e.target.value)}
-                            disabled={loading || !userId}
-                        >
-                            <option value="">選擇匯率記錄</option>
-                            {userRates.map(rate => (
-                                <option key={rate.your_rate_id} value={rate.your_rate_id}>
-                                    JPY: {rate.JPY} NTD: {rate.NTD} - {new Date(rate.create_time).toLocaleDateString()}
-                                </option>
-                            ))}
-                        </select>
-                    )}
-
-                    {selectedRate && (
+                    {loading ? (
+                        <div className="loading-message">載入中...</div>
+                    ) : userRates.length > 0 ? (
                         <>
-                            <input
-                                type="number"
-                                value={JPY}
-                                onChange={(e) => setJPY(e.target.value)}
-                                placeholder="JPY 匯率"
+                            <select
+                                value={selectedRate?.your_rate_id || ""}
+                                onChange={(e) => handleRateSelect(e.target.value)}
                                 disabled={loading}
-                            />
-                            <input
-                                type="number"
-                                value={NTD}
-                                onChange={(e) => setNTD(e.target.value)}
-                                placeholder="NTD 匯率"
-                                disabled={loading}
-                            />
-
-                            <button
-                                onClick={handleUpdateRate}
-                                disabled={loading || !JPY || !NTD}
+                                className="rate-select"
                             >
-                                {loading ? "更新中..." : "更新匯率"}
-                            </button>
+                                <option value="">選擇匯率記錄</option>
+                                {userRates.map(rate => (
+                                    <option key={rate.your_rate_id} value={rate.your_rate_id}>
+                                        1 JPY = {(rate.NTD/rate.JPY).toFixed(4)} NTD ({new Date(rate.create_time).toLocaleString()})
+                                    </option>
+                                ))}
+                            </select>
+
+                            {selectedRate && (
+                                <div className="rate-form">
+                                    <div className="input-group">
+                                        <label>JPY 金額</label>
+                                        <input
+                                            type="number"
+                                            value={JPY}
+                                            onChange={(e) => setJPY(e.target.value)}
+                                            placeholder="輸入 JPY 金額"
+                                            disabled={loading}
+                                            min="0"
+                                            step="0.01"
+                                            className="rate-input"
+                                        />
+                                    </div>
+                                    <div className="input-group">
+                                        <label>NTD 金額</label>
+                                        <input
+                                            type="number"
+                                            value={NTD}
+                                            onChange={(e) => setNTD(e.target.value)}
+                                            placeholder="輸入 NTD 金額"
+                                            disabled={loading}
+                                            min="0"
+                                            step="0.01"
+                                            className="rate-input"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={handleUpdateRate}
+                                        disabled={loading || !JPY || !NTD}
+                                        className="update-button"
+                                    >
+                                        {loading ? "更新中..." : "更新匯率"}
+                                    </button>
+                                </div>
+                            )}
                         </>
+                    ) : userId && (
+                        <div className="no-rates-message">
+                            此使用者尚未設定匯率
+                        </div>
                     )}
                 </>
             )}
