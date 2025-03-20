@@ -352,7 +352,7 @@ app.put('/updateRate', (req, res) => {
     );
   });
 
-app.delete('/removeGroupUser', (req, res) => {
+  app.delete('/removeGroupUser', (req, res) => {
     const { group_id, user_id } = req.body;
     
     if (!group_id || !user_id) {
@@ -360,32 +360,81 @@ app.delete('/removeGroupUser', (req, res) => {
     }
     
     db.query(
-        "SELECT * FROM GROUP_USER WHERE group_id = ? AND user_id = ?",
-        [group_id, user_id],
-        (err, results) => {
+      "SELECT * FROM GROUP_USER WHERE group_id = ? AND user_id = ?",
+      [group_id, user_id],
+      (err, results) => {
+        if (err) {
+          console.error("MySQL Error:", err);
+          return res.status(500).json({ error: "Database error" });
+        }
+        
+        if (results.length === 0) {
+          return res.status(404).json({ error: "User not in group" });
+        }
+        
+        // Check if user has any bills in this group
+        db.query(
+          "SELECT COUNT(*) AS bill_count FROM BILL_RECORD WHERE group_id = ? AND user_id = ?",
+          [group_id, user_id],
+          (err, billResults) => {
             if (err) {
-                console.error("MySQL Error:", err);
-                return res.status(500).json({ error: "Database error" });
+              console.error("MySQL Error:", err);
+              return res.status(500).json({ error: "Database error" });
             }
-        
-            if (results.length === 0) {
-                return res.status(404).json({ error: "User not in group" });
+            
+            // If user has bills in this group, don't allow removal
+            if (billResults[0].bill_count > 0) {
+              return res.status(400).json({ 
+                success: false,
+                error: "User has existing bill records in this group and cannot be removed" 
+              });
             }
-        
+            
+            // Also check if user has split records in this group
             db.query(
-                "DELETE FROM GROUP_USER WHERE group_id = ? AND user_id = ?",
-                [group_id, user_id],
-                (err, result) => {
-                    if (err) {
-                        console.error("MySQL Error:", err);
-                        return res.status(500).json({ error: "Database error" });
-                    }
-                    res.json({ message: "User removed from group successfully", result });
+              "SELECT COUNT(*) AS split_count FROM SPLIT_RECORD sr " +
+              "JOIN BILL_RECORD br ON sr.bill_id = br.bill_id " +
+              "WHERE br.group_id = ? AND sr.user_id = ?",
+              [group_id, user_id],
+              (err, splitResults) => {
+                if (err) {
+                  console.error("MySQL Error:", err);
+                  return res.status(500).json({ error: "Database error" });
                 }
+                
+                // If user has split records in this group, don't allow removal
+                if (splitResults[0].split_count > 0) {
+                  return res.status(400).json({ 
+                    success: false,
+                    error: "User has existing split records in this group and cannot be removed" 
+                  });
+                }
+                
+                // User has no records in this group, proceed with removal
+                db.query(
+                  "DELETE FROM GROUP_USER WHERE group_id = ? AND user_id = ?",
+                  [group_id, user_id],
+                  (err, result) => {
+                    if (err) {
+                      console.error("MySQL Error:", err);
+                      return res.status(500).json({ error: "Database error" });
+                    }
+                    
+                    res.json({ 
+                      success: true,
+                      message: "User removed from group successfully", 
+                      result 
+                    });
+                  }
+                );
+              }
             );
-        } 
+          }
+        );
+      }
     );
-});
+  });
+
 
 app.get('/GROUP', (req, res) => {
     db.query("SELECT * FROM `GROUP_TABLE`", (err, results) => {

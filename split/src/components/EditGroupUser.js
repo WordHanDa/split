@@ -30,6 +30,7 @@ const EditGroupUser = () => {
 
     const fetchGroupUsers = async (gid) => {
         try {
+            setLoading(true);
             const response = await Axios.get(`${hostname}/getUsersByGroupId`, {
                 params: { group_id: gid }
             });
@@ -37,6 +38,8 @@ const EditGroupUser = () => {
         } catch (error) {
             console.error("Error fetching group users:", error);
             toast.error("無法取得群組成員");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -46,7 +49,11 @@ const EditGroupUser = () => {
             return;
         }
 
-        if (!window.confirm("確定要將此成員從群組中移除嗎？此操作無法復原。")) {
+        // Find the user name for confirmation message
+        const userToDelete = users.find(user => user.user_id === parseInt(selectedUser));
+        if (!userToDelete) return;
+
+        if (!window.confirm(`確定要將 ${userToDelete.user_name} 從群組中移除嗎？此操作無法復原。`)) {
             return;
         }
 
@@ -60,13 +67,13 @@ const EditGroupUser = () => {
             });
 
             if (response.data.message) {
-                toast.success("成員移除成功");
+                toast.success(`success remove ${userToDelete.user_name} from group`);
                 setSelectedUser('');
                 fetchGroupUsers(groupId);
             }
         } catch (error) {
             console.error("Error removing user:", error);
-            const errorMessage = error.response?.data?.error || "移除成員失敗";
+            const errorMessage = error.response?.data?.error || "remove user failed";
             toast.error(errorMessage);
         } finally {
             setLoading(false);
@@ -76,32 +83,41 @@ const EditGroupUser = () => {
     return (
         <div className="edit-group-user-container">
             {!groupId ? (
-                <div className="no-group-message">請先選擇群組</div>
+                <div className="no-group-message">select group</div>
             ) : (
                 <>
-                    <select
-                        value={selectedUser}
-                        onChange={(e) => setSelectedUser(e.target.value)}
-                        disabled={loading}
-                    >
-                        <option value="">Select a user</option>
-                        {users.map(user => (
-                            <option key={user.user_id} value={user.user_id}>
-                                {user.user_name}
-                            </option>
-                        ))}
-                    </select>
+                    {loading ? (
+                        <div className="loading-message">loading...</div>
+                    ) : users.length === 0 ? (
+                        <div className="no-users-message">this group have no member</div>
+                    ) : (
+                        <>
+                            <select
+                                value={selectedUser}
+                                onChange={(e) => setSelectedUser(e.target.value)}
+                                disabled={loading}
+                                className="user-select"
+                            >
+                                <option value="">selecte a user</option>
+                                {users.map(user => (
+                                    <option key={user.user_id} value={user.user_id}>
+                                        {user.user_name}
+                                    </option>
+                                ))}
+                            </select>
 
-                    <button
-                        className="delete-button"
-                        onClick={handleDeleteUser}
-                        disabled={!selectedUser || loading}
-                    >
-                        {loading ? "Deleting..." : "Delete User"}
-                    </button>
+                            <button
+                                className="delete-button"
+                                onClick={handleDeleteUser}
+                                disabled={!selectedUser || loading}
+                            >
+                                {loading ? "removing..." : "remove user"}
+                            </button>
+                        </>
+                    )}
                 </>
             )}
-            <ToastContainer />
+            <ToastContainer position="top-right" autoClose={3000} />
         </div>
     );
 };

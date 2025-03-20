@@ -7,7 +7,6 @@ import 'react-toastify/dist/ReactToastify.css';
 const hostname = "http://macbook-pro.local:3002";
 
 const EditRate = () => {
-    const [rates, setRates] = useState([]);
     const [selectedRate, setSelectedRate] = useState(null);
     const [JPY, setJPY] = useState("");
     const [NTD, setNTD] = useState("");

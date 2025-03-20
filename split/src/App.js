@@ -6,6 +6,7 @@ import RatePage from './pages/ratePage';
 import UserPage from './pages/userPage';
 import BillPage from './pages/billPage';
 import ResultPage from './pages/resultPage';
+import GroupUserPage from './pages/groupUserPage';
 import Cookies from 'js-cookie';
 
 const App = () => {
@@ -39,6 +40,7 @@ const App = () => {
                     <button onClick={() => window.location.href = '/user'}>User</button>
                     <button onClick={() => window.location.href = '/bill'}>Bill</button>
                     <button onClick={() => window.location.href = '/result'}>Result</button>
+                    <button onClick={() => window.location.href = '/groupUser'}>Group User</button>
                 </nav>
                 {selectedGroup && (
                     <div>
@@ -51,6 +53,7 @@ const App = () => {
                     <Route path="/user" element={<UserPage />} />
                     <Route path="/bill" element={<BillPage />} />
                     <Route path="/result" element={<ResultPage />} />
+                    <Route path="/groupUser" element={<GroupUserPage />} />
                 </Routes>
             </div>
         </Router>
