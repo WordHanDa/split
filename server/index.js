@@ -312,6 +312,46 @@ app.post('/addGroupUser', (req, res) => {
     );
 });
 
+app.put('/updateRate', (req, res) => {
+    const { id, JPY, NTD, user_id } = req.body;
+    
+    if (!id) {
+      return res.status(400).json({ error: "Rate id is required" });
+    }
+    
+    if (!JPY || !NTD || !user_id || JPY.trim() === "" || NTD.trim() === "") {
+      return res.status(400).json({ error: "JPY, NTD rates and user_id cannot be empty" });
+    }
+    
+    db.query(
+      "SELECT * FROM YOUR_RATE WHERE your_rate_id = ?",
+      [id],
+      (err, results) => {
+        if (err) {
+          console.error("MySQL Error:", err);
+          return res.status(500).json({ error: "Database error" });
+        }
+        
+        if (results.length === 0) {
+          return res.status(404).json({ error: "Rate not found" });
+        }
+        
+        db.query(
+          "UPDATE YOUR_RATE SET JPY = ?, NTD = ?, user_id = ? WHERE your_rate_id = ?",
+          [JPY, NTD, user_id, id],
+          (err, result) => {
+            if (err) {
+              console.error("MySQL Error:", err);
+              return res.status(500).json({ error: "Database error" });
+            }
+            
+            res.json({ success: true, message: "Rate updated successfully", result });
+          }
+        );
+      }
+    );
+  });
+
 app.delete('/removeGroupUser', (req, res) => {
     const { group_id, user_id } = req.body;
     
@@ -407,7 +447,67 @@ app.post('/createRate', (req, res) => {
     );
 });
 
+app.delete('/deleteUser', (req, res) => {
+    const { user_id } = req.body;
+    
+    if (!user_id) {
+        return res.status(400).json({ error: "user_id is required" });
+    }
 
+    // First check if user exists
+    db.query(
+        "SELECT * FROM USER WHERE user_id = ?",
+        [user_id],
+        (err, results) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                return res.status(500).json({ error: "Database error" });
+            }
+            
+            if (results.length === 0) {
+                return res.status(404).json({ error: "User not found" });
+            }
+            
+            // NEW: Check if user has any associated bill records
+            db.query(
+                "SELECT COUNT(*) AS bill_count FROM BILL_RECORD WHERE user_id = ?",
+                [user_id],
+                (err, billResults) => {
+                    if (err) {
+                        console.error("MySQL Error:", err);
+                        return res.status(500).json({ error: "Database error" });
+                    }
+                    
+                    // If user has bill records, don't allow deletion
+                    if (billResults[0].bill_count > 0) {
+                        return res.status(400).json({ 
+                            success: false,
+                            error: "User has existing bill records and cannot be deleted" 
+                        });
+                    }else{
+                        // User has no bill records, proceed with deletion
+                    db.query(
+                        "DELETE FROM USER WHERE user_id = ?",
+                        [user_id],
+                        (err, result) => {
+                            if (err) {
+                                console.error("MySQL Error:", err);
+                                return res.status(500).json({ error: "Database error" });
+                            }
+                            
+                            res.json({ 
+                                success: true,
+                                message: "User deleted successfully", 
+                                result 
+                            });
+                        }
+                    );
+                    }
+                }
+            );
+        }
+    );
+});
 
 app.get('/YOUR_RATE/latest', (req, res) => {
     const group_id = req.query.group_id;

@@ -121,6 +121,7 @@ const EditGroup = () => {
 
     return (
         <div className="edit-group-container">
+          <h3>Edit Group</h3>
             <select
                 value={selectedGroup}
                 onChange={(e) => handleGroupSelect(e.target.value)}

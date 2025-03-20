@@ -33,6 +33,7 @@ const AddGroup = () => {
 
     return (
         <div>
+            <h3>Add Group</h3>
             <input 
                 type="text" 
                 value={groupName} 

@@ -2,7 +2,7 @@ import React from 'react';
 import ShowRate from '../components/ShowRate';
 import ShowYourRate from '../components/ShowYourRate';
 import AddRate from '../components/AddRate';
-
+import EditRate from '../components/EditRate';
 const RatePage = () => {
     return (
         <div>
@@ -10,6 +10,7 @@ const RatePage = () => {
             <ShowRate />
             <ShowYourRate />
             <AddRate />
+            <EditRate />
         </div>
     );
 };
