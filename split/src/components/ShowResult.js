@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Axios from "axios";
 import Cookies from 'js-cookie';
 
-const hostname = "http://macbook-pro.local:3002";
+const hostname = "http://120.126.16.21:3002";
 
 const ShowResult = () => {
     const [balanceData, setBalanceData] = useState({

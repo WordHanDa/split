@@ -7,7 +7,7 @@ import AddSplit from './AddSplit';
 import AddItem from './AddItem';
 
 // Define the hostname for API calls
-const hostname = "http://macbook-pro.local:3002";
+const hostname = "http://120.126.16.21:3002";
 
 // Create a global toast container ID to ensure uniqueness
 const TOAST_CONTAINER_ID = "add-bill-toast-container";
