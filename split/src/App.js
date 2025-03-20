@@ -36,11 +36,11 @@ const App = () => {
             <div>
                 <nav>
                     <button onClick={() => window.location.href = '/group'}>Group</button>
-                    <button onClick={() => window.location.href = '/rate'}>Rate</button>
+                    <button onClick={() => window.location.href = '/groupUser'}>Group User</button>
                     <button onClick={() => window.location.href = '/user'}>User</button>
+                    <button onClick={() => window.location.href = '/rate'}>Rate</button>
                     <button onClick={() => window.location.href = '/bill'}>Bill</button>
                     <button onClick={() => window.location.href = '/result'}>Result</button>
-                    <button onClick={() => window.location.href = '/groupUser'}>Group User</button>
                 </nav>
                 {selectedGroup && (
                     <div>
@@ -49,11 +49,12 @@ const App = () => {
                 )}
                 <Routes>
                     <Route path="/group" element={<GroupPage onGroupSelect={handleGroupSelect}/>} />
-                    <Route path="/rate" element={<RatePage />} />
+                    <Route path="/groupUser" element={<GroupUserPage />} />
                     <Route path="/user" element={<UserPage />} />
+                    <Route path="/rate" element={<RatePage />} />
                     <Route path="/bill" element={<BillPage />} />
                     <Route path="/result" element={<ResultPage />} />
-                    <Route path="/groupUser" element={<GroupUserPage />} />
+                    
                 </Routes>
             </div>
         </Router>
