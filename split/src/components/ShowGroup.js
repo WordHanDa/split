@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Axios from 'axios';
 import AddGroupUser from './AddGroupUser';
+import EditGroupUser from './EditGroupUser';
 
 let hostname = "http://macbook-pro.local:3002";
 
@@ -52,8 +53,9 @@ const ShowGroup = ({ onGroupSelect }) => {
             {selectedGroup && (
                 <div>
                     <h3>Add User to {selectedGroup.group_name}</h3>
-                    {error && <p style={{ color: 'red' }}>{error}</p>} {/* Display error message */}
                     <AddGroupUser addUser={addUserToGroup} />
+                    <h3>Delete User to {selectedGroup.group_name}</h3>
+                    <EditGroupUser group={selectedGroup} />
                 </div>
             )}
         </div>

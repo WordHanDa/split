@@ -332,6 +332,41 @@ app.post('/addGroupUser', (req, res) => {
     );
 });
 
+app.delete('/removeGroupUser', (req, res) => {
+    const { group_id, user_id } = req.body;
+    
+    if (!group_id || !user_id) {
+      return res.status(400).json({ error: "group_id and user_id are required" });
+    }
+    
+    db.query(
+        "SELECT * FROM GROUP_USER WHERE group_id = ? AND user_id = ?",
+        [group_id, user_id],
+        (err, results) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                return res.status(500).json({ error: "Database error" });
+            }
+        
+            if (results.length === 0) {
+                return res.status(404).json({ error: "User not in group" });
+            }
+        
+            db.query(
+                "DELETE FROM GROUP_USER WHERE group_id = ? AND user_id = ?",
+                [group_id, user_id],
+                (err, result) => {
+                    if (err) {
+                        console.error("MySQL Error:", err);
+                        return res.status(500).json({ error: "Database error" });
+                    }
+                    res.json({ message: "User removed from group successfully", result });
+                }
+            );
+        } 
+    );
+});
+
 app.get('/GROUP', (req, res) => {
     db.query("SELECT * FROM `GROUP_TABLE`", (err, results) => {
         if (err) {
