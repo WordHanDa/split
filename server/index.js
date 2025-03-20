@@ -390,7 +390,7 @@ app.delete('/removeGroupUser', (req, res) => {
         );
       }
     );
-  });
+});
 
 app.get('/GROUP', (req, res) => {
     db.query("SELECT * FROM `GROUP_TABLE`", (err, results) => {
@@ -866,6 +866,7 @@ app.get('/getGroupTotals', (req, res) => {
         });
     });
 });
+
 app.post('/createItem', async (req, res) => {
     const { bill_id, items } = req.body;
 
@@ -1348,7 +1349,6 @@ app.post('/createSplitRecord', (req, res) => {
     }
 });
 
-// 查詢特定帳單的分帳比例
 app.get('/getSplitRecord', (req, res) => {
     const { bill_id } = req.query;
 
