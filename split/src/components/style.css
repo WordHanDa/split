@@ -592,37 +592,6 @@ tr:hover {
   font-size: 14px;
 }
 
-/* Toast customization */
-.Toastify__toast {
-  border-radius: 6px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  font-family: var(--apple-font);
-  padding: 12px 16px;
-}
-
-.Toastify__toast--success {
-  background-color: #34c759;
-}
-
-.Toastify__toast--error {
-  background-color: #ff3b30;
-}
-
-.Toastify__toast--info {
-  background-color: #0071e3;
-}
-
-.Toastify__toast-body {
-  font-size: 14px;
-  font-weight: 400;
-  color: white;
-}
-
-.Toastify__progress-bar {
-  height: 3px;
-}
-
-/* Input group */
 .input-group {
   margin-bottom: 16px;
 }
@@ -634,7 +603,6 @@ tr:hover {
   color: #86868b;
 }
 
-/* Add Split / Add Item */
 .add-split div, 
 .add-item div {
   margin-bottom: 16px;
