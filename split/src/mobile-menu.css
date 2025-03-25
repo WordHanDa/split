@@ -11,137 +11,133 @@
     padding: 0;
     align-items: center;
     justify-content: center;
-  }
-  
-  .menu-icon {
+}
+
+.menu-toggle:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.menu-icon {
     position: relative;
     width: 20px;
     height: 16px;
-  }
-  
-  .menu-icon span {
+}
+
+.menu-icon span {
     position: absolute;
     width: 100%;
     height: 2px;
     background-color: white;
     left: 0;
     transition: all 0.3s ease;
-  }
-  
-  .menu-icon span:nth-child(1) {
+}
+
+.menu-icon span:nth-child(1) {
     top: 0;
-  }
-  
-  .menu-icon span:nth-child(2) {
+}
+
+.menu-icon span:nth-child(2) {
     top: 7px;
-  }
-  
-  .menu-icon span:nth-child(3) {
+}
+
+.menu-icon span:nth-child(3) {
     top: 14px;
-  }
-  
-  /* X transformation when menu is open */
-  .menu-open .menu-icon span:nth-child(1) {
+}
+
+/* X transformation when menu is open */
+.menu-open .menu-icon span:nth-child(1) {
     transform: rotate(45deg);
     top: 7px;
-  }
-  
-  .menu-open .menu-icon span:nth-child(2) {
+}
+
+.menu-open .menu-icon span:nth-child(2) {
     opacity: 0;
-  }
-  
-  .menu-open .menu-icon span:nth-child(3) {
+}
+
+.menu-open .menu-icon span:nth-child(3) {
     transform: rotate(-45deg);
     top: 7px;
-  }
-  
-  /* Enhanced keyframe animations for smoother transitions */
-  @keyframes softFadeIn {
-    from { 
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    to { 
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  @keyframes backgroundOverlay {
-    from { 
-      background-color: rgba(0, 0, 0, 0);
-    }
-    to { 
-      background-color: rgba(0, 0, 0, 0.5);
-    }
-  }
-  
-  /* Responsive media queries */
-  @media (max-width: 768px) {
+}
+
+/* Responsive media queries */
+@media (max-width: 768px) {
     .menu-toggle {
-      display: flex;
+        display: flex;
     }
     
     .apple-nav {
-      padding: 0 10px;
-      overflow-x: visible;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 1000;
+        padding: 0 10px;
+        overflow-x: visible;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
     }
     
     .nav-links {
-      position: absolute;
-      top: 44px;
-      left: 0;
-      width: 100%;
-      flex-direction: column;
-      background-color: #1d1d1f;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      height: 0;
-      overflow: hidden;
-      transition: 
-        height 0.3s ease-in-out,
-        opacity 0.3s ease-in-out;
-      z-index: 100;
-      display: flex;
-      opacity: 0;
+        position: fixed; /* Changed from absolute for smoother animation */
+        top: 44px;
+        left: 0;
+        width: 100%;
+        flex-direction: column;
+
+        height: 0;
+        overflow: hidden;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px); /* Add initial transform */
+        transition: 
+            height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+            opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+            transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+            visibility 0s linear 0.4s; /* Delay visibility change */
+        z-index: 1000;
+        display: flex;
     }
     
     .nav-links.open {
-      height: auto;
-      opacity: 1;
-      overflow: visible;
-      transition: 
-        height 0.3s ease-in-out,
-        opacity 0.3s ease-in-out;
+        height: calc(50vh - 44px); /* Full viewport height minus header */
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+        transition: 
+            height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+            opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+            transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+            visibility 0s linear;
     }
     
     .nav-links a {
-      width: 100%;
-      margin: 0;
-      padding: 14px 20px;
-      justify-content: flex-start;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      font-size: 16px;
-      display: flex;
-      opacity: 0;
-      transform: translateY(-10px);
-      transition: 
-        opacity 0.3s ease-in-out,
-        transform 0.3s ease-in-out;
-      visibility: visible;
+        width: 100%;
+        margin: 0;
+        padding: 12px 20px;
+        justify-content: flex-start;
+        font-size: 16px;
+        display: flex;
+        opacity: 0;
+        transform: translateY(-20px);
+        transition: 
+            opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+            transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: opacity, transform; /* Optimize animations */
     }
     
     .nav-links.open a {
-      opacity: 1;
-      transform: translateY(0);
-      transition: 
-        opacity 0.3s ease-in-out,
-        transform 0.3s ease-in-out;
-      transition-delay: calc(0.05s * var(--index, 0));
+        opacity: 1;
+        transform: translateY(0);
+        transition-delay: calc(0.1s * var(--index, 0));
+    }
+    
+    .nav-links:not(.open) a {
+        opacity: 0;
+        transform: translateY(-20px);
+        transition-delay: calc(0.05s * (6 - var(--index, 0)));
+    }
+
+    .nav-links.open::after {
+        opacity: 1;
     }
     
     .nav-links.open a:nth-child(1) { --index: 1; }
@@ -151,48 +147,54 @@
     .nav-links.open a:nth-child(5) { --index: 5; }
     .nav-links.open a:nth-child(6) { --index: 6; }
     
-    /* Hamburger icon animation */
-    .menu-toggle:active .menu-icon {
-      animation: spin 0.4s ease;
-    }
-    
-    .menu-open .menu-icon span:nth-child(1) {
-      transform: rotate(45deg);
-      top: 7px;
-      transition: 
-        transform 0.3s ease-in-out, 
-        top 0.3s ease-in-out;
-    }
-    
-    .menu-open .menu-icon span:nth-child(2) {
-      opacity: 0;
-      transition: opacity 0.2s ease-in-out;
-    }
-    
-    .menu-open .menu-icon span:nth-child(3) {
-      transform: rotate(-45deg);
-      top: 7px;
-      transition: 
-        transform 0.3s ease-in-out, 
-        top 0.3s ease-in-out;
-    }
+    /* Ensure links have proper index when closing */
+    .nav-links a:nth-child(1) { --index: 1; }
+    .nav-links a:nth-child(2) { --index: 2; }
+    .nav-links a:nth-child(3) { --index: 3; }
+    .nav-links a:nth-child(4) { --index: 4; }
+    .nav-links a:nth-child(5) { --index: 5; }
+    .nav-links a:nth-child(6) { --index: 6; }
     
     /* Add padding to main content to prevent it from being hidden under the fixed navbar */
     .main-content {
-      padding-top: 44px;
+        padding-top: 44px;
     }
     
     .current-group-text {
-      font-size: 11px;
-      white-space: nowrap;
-      max-width: 180px;
-      overflow: hidden;
-      text-overflow: ellipsis;
+        font-size: 11px;
+        white-space: nowrap;
+        max-width: 180px;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
-    
-    /* Spin animation for hamburger icon */
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
+
+    /* Add menu backdrop */
+    .menu-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(29, 29, 31);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        opacity: 0;
+        visibility: hidden;
+        transition: 
+            opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+            visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 999;
     }
-  }
+
+    .menu-backdrop.open {
+        margin-top:44px;
+        opacity: 1;
+        visibility: visible;
+    }
+
+    /* Prevent main content scroll when menu is open */
+    .app-container.menu-open {
+        height: 100vh;
+        overflow: hidden;
+    }
+}

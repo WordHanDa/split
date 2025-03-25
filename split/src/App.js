@@ -28,6 +28,19 @@ const App = () => {
         }
     }, []);
 
+    // Add scroll lock effect
+    useEffect(() => {
+        if (menuOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [menuOpen]);
+
     const handleGroupSelect = (group) => {
         setSelectedGroup(group);
         // Store selected group in cookies
@@ -47,15 +60,27 @@ const App = () => {
 
     return (
         <Router>
-            <div className="app-container">
+            <div className={`app-container ${menuOpen ? 'menu-open' : ''}`}>
                 <nav className={`apple-nav ${menuOpen ? 'menu-open' : ''}`}>
-                    <button className="menu-toggle" onClick={toggleMenu} aria-label="Toggle navigation menu">
+                    <button 
+                        className="menu-toggle" 
+                        onClick={toggleMenu} 
+                        aria-label="Toggle navigation menu"
+                        aria-expanded={menuOpen}
+                    >
                         <div className="menu-icon">
                             <span></span>
                             <span></span>
                             <span></span>
                         </div>
                     </button>
+                    
+                    {/* Add backdrop div */}
+                    <div 
+                        className={`menu-backdrop ${menuOpen ? 'open' : ''}`} 
+                        onClick={toggleMenu}
+                        aria-hidden="true"
+                    />
                     
                     <div className={`nav-links ${menuOpen ? 'open' : ''}`}>
                         <Link to="/group" onClick={handleLinkClick}>Group</Link>
