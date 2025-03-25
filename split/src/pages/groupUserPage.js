@@ -3,22 +3,29 @@ import AddGroupUser from '../components/AddGroupUser';
 import EditGroupUser from '../components/EditGroupUser';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import '../page.css';
 
 const GroupUserPage = () => {
     return (
-        <div className="group-user-page">
+        <div className="page-container">
             <h1>Group User Management</h1>
-            <div className="user-management-container">
-                <section className="add-user-section">
-                    <h3>Add User</h3>
-                    <AddGroupUser />
-                </section>
-
-                <section className="edit-user-section">
-                    <h3>Edit User</h3>
-                    <EditGroupUser />
-                </section>
+            
+            <div className="two-column-layout">
+                <div className="component-section">
+                    <h3>Add User to Group</h3>
+                    <div className="group-user-container">
+                        <AddGroupUser />
+                    </div>
+                </div>
+                
+                <div className="component-section">
+                    <h3>Edit Group Members</h3>
+                    <div className="group-user-container">
+                        <EditGroupUser />
+                    </div>
+                </div>
             </div>
+            
             <ToastContainer position="top-right" autoClose={3000} />
         </div>
     );

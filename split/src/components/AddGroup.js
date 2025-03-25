@@ -33,17 +33,22 @@ const AddGroup = () => {
     };
 
     return (
-        <div>
-            <h3>Add Group</h3>
-            <input 
-                type="text" 
-                value={groupName} 
-                onChange={(event) => setGroupName(event.target.value)} 
-                placeholder="Enter group name"
-            />
-            <button onClick={add}>ADD</button>
-            <ToastContainer />
-        </div>
+      <div className="add-group-wrapper">
+      <input 
+          type="text" 
+          value={groupName} 
+          onChange={(event) => setGroupName(event.target.value)} 
+          placeholder="Enter group name"
+          className="add-group-input"
+      />
+      <button 
+          onClick={add}
+          className="add-button"
+      >
+          ADD
+      </button>
+      <ToastContainer position="top-right" autoClose={3000} />
+  </div>
     );
 };
 

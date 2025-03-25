@@ -24,7 +24,7 @@ const ShowGroup = ({ onGroupSelect }) => {
     return (
         <div className="show-group-container">
             <button onClick={getGroup} className="show-group-button">
-                Show Groups
+                Show Groups list to selected
             </button>
             
             {error && <div className="error-message">{error}</div>}
