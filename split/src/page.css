@@ -52,9 +52,44 @@ h1 {
   margin-bottom: 24px;
 }
 
-@media (min-width: 768px) {
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .page-container {
+    padding: 0 12px;
+  }
+  
+  h1 {
+    font-size: 24px;
+    margin: 16px 0 20px;
+  }
+  
+  .component-section h3 {
+    font-size: 16px;
+    padding: 12px 16px;
+  }
+  
+  .group-page-section {
+    padding: 0 16px 20px;
+  }
+  
   .two-column-layout {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-container {
+    padding: 0 10px;
+  }
+  
+  h1 {
+    font-size: 22px;
+    margin: 12px 0 16px;
+  }
+  
+  .component-section {
+    border-radius: 8px;
   }
 }
 
@@ -90,83 +125,4 @@ h1 {
 /* Group user page specific */
 .group-user-container {
   padding: 20px;
-}
-
-/* Result page - Balance Summary styles */
-.balance-summary-container {
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.07);
-  margin-bottom: 24px;
-  overflow: hidden;
-}
-
-.balance-summary-header {
-  padding: 16px 24px;
-  border-bottom: 1px solid #d2d2d7;
-}
-
-.balance-summary-title {
-  font-size: 20px;
-  font-weight: 500;
-  color: #1d1d1f;
-  margin: 0;
-}
-
-.balance-summary-content {
-  padding: 24px;
-}
-
-.totals-container {
-  background-color: #f5f5f7;
-  border-radius: 8px;
-  padding: 16px 24px;
-  margin-bottom: 24px;
-}
-
-.total-item {
-  font-size: 17px;
-  font-weight: 400;
-  color: #1d1d1f;
-  margin-bottom: 8px;
-}
-
-.total-item:last-child {
-  margin-bottom: 0;
-}
-
-/* Balance table styling */
-.balance-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  margin-top: 0;
-}
-
-.balance-table th {
-  background-color: #f5f5f7;
-  padding: 12px 16px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #1d1d1f;
-  text-align: left;
-  border-bottom: 1px solid #d2d2d7;
-}
-
-.balance-table td {
-  padding: 14px 16px;
-  font-size: 15px;
-  border-bottom: 1px solid #d2d2d7;
-}
-
-.balance-table tr:last-child td {
-  border-bottom: none;
-}
-
-.positive-balance {
-  color: #34c759;
-}
-
-.negative-balance {
-  color: #ff3b30;
 }

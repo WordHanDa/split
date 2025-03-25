@@ -109,14 +109,43 @@ a:hover {
   text-decoration: underline;
 }
 
-/* Responsive adjustments */
-@media (max-width: 767px) {
+/* Responsive styles for the navigation */
+@media (max-width: 768px) {
   .apple-nav {
-    justify-content: space-between;
+    padding: 0 10px;
+    overflow-x: auto;
   }
   
-  .apple-nav a {
-    padding: 0 12px;
-    font-size: 13px;
+  .nav-links {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 10px;
+  }
+  
+  .nav-links a {
+    white-space: nowrap;
+    margin: 0 15px 0 0;
+    font-size: 11px;
+  }
+  
+  .current-group-text {
+    font-size: 11px;
+    white-space: nowrap;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+@media (max-width: 480px) {
+  .apple-nav {
+    justify-content: flex-start;
+  }
+  
+  .current-group-text {
+    position: absolute;
+    right: 10px;
+    max-width: 100px;
   }
 }

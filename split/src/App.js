@@ -9,9 +9,11 @@ import ResultPage from './pages/resultPage';
 import GroupUserPage from './pages/groupUserPage';
 import Cookies from 'js-cookie';
 import './components/style.css';
+import './mobile-menu.css';
 
 const App = () => {
     const [selectedGroup, setSelectedGroup] = useState(null);
+    const [menuOpen, setMenuOpen] = useState(false);
 
     useEffect(() => {
         // Read selected group from cookies
@@ -32,18 +34,38 @@ const App = () => {
         Cookies.set('selectedGroup', JSON.stringify(group), { expires: 7 }); // 7 days expiration
     };
 
+    const toggleMenu = () => {
+        setMenuOpen(!menuOpen);
+    };
+
+    // Close menu when a link is clicked
+    const handleLinkClick = () => {
+        if (menuOpen) {
+            setMenuOpen(false);
+        }
+    };
+
     return (
         <Router>
             <div className="app-container">
-                <nav className="apple-nav">
-                    <div className="nav-links">
-                        <Link to="/group">Group</Link>
-                        <Link to="/groupUser">Group&nbsp;User</Link>
-                        <Link to="/user">User</Link>
-                        <Link to="/rate">Rate</Link>
-                        <Link to="/bill">Bill</Link>
-                        <Link to="/result">Result</Link>
+                <nav className={`apple-nav ${menuOpen ? 'menu-open' : ''}`}>
+                    <button className="menu-toggle" onClick={toggleMenu} aria-label="Toggle navigation menu">
+                        <div className="menu-icon">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </button>
+                    
+                    <div className={`nav-links ${menuOpen ? 'open' : ''}`}>
+                        <Link to="/group" onClick={handleLinkClick}>Group</Link>
+                        <Link to="/groupUser" onClick={handleLinkClick}>Group User</Link>
+                        <Link to="/user" onClick={handleLinkClick}>User</Link>
+                        <Link to="/rate" onClick={handleLinkClick}>Rate</Link>
+                        <Link to="/bill" onClick={handleLinkClick}>Bill</Link>
+                        <Link to="/result" onClick={handleLinkClick}>Result</Link>
                     </div>
+                    
                     {selectedGroup && (
                         <div className="current-group-text">
                             Current group: {selectedGroup.group_name}
