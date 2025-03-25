@@ -6,7 +6,6 @@ import './style.css';
 
 let hostname = "http://macbook-pro.local:3002";
 
-// We use the parent's toast container - no need for a separate one
 const AddItem = ({ onItemComplete }) => {
     const [items, setItems] = useState([{
         item_amount: "",

@@ -47,7 +47,7 @@ const AddGroup = () => {
       >
           ADD
       </button>
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer/>
   </div>
     );
 };

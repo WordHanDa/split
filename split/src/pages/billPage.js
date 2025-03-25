@@ -7,7 +7,6 @@ const BillPage = () => {
     return (
         <div className="page-container">
         <h1>Bill Management</h1>
-        
         <div className="component-section">
             <h3>Add New Bill</h3>
             <div className="bill-page-section">

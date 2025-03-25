@@ -327,18 +327,7 @@ const AddBill = () => {
     return (
         <div className="add-bill-container" style={{ position: 'relative' }}>
             {/* Toast container positioned with a higher z-index */}
-            <ToastContainer 
-                enableMultiContainer
-                containerId={TOAST_CONTAINER_ID}
-                autoClose={5000} 
-                hideProgressBar={false}
-                newestOnTop
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-            />
+            <ToastContainer/>
             
             <h2>Add Bill</h2>
             

@@ -303,7 +303,7 @@ const EditBill = () => {
                     )}
                 </>
             )}
-            <ToastContainer position="top-right" autoClose={3000} />
+            <ToastContainer/>
         </div>
     );
 };

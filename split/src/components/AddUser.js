@@ -69,12 +69,7 @@ const AddUser = ({ onUserAdded }) => {
                     {isLoading ? "新增中..." : "新增"}
                 </button>
             </div>
-            <ToastContainer 
-                position="top-right"
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop
-            />
+            <ToastContainer/>
         </div>
     );
 };
