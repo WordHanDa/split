@@ -755,6 +755,79 @@ tr:hover {
   margin-bottom: 30px;
 }
 
+/* Rate display styling */
+.rate-container {
+    background-color: var(--apple-white);
+    border-radius: var(--apple-radius);
+    box-shadow: 0 1px 2px var(--apple-shadow);
+    padding: 24px;
+    margin: 16px;
+    max-width: 800px;
+}
+
+.rate-list {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0;
+}
+
+.rate-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background-color: var(--apple-light-background);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    transition: var(--apple-transition);
+}
+
+.rate-item:hover {
+    background-color: rgba(0, 113, 227, 0.05);
+}
+
+.rate-info {
+    display: flex;
+    gap: 24px;
+}
+
+.rate-label {
+    color: var(--apple-gray);
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.rate-value {
+    color: var(--apple-black);
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.show-rate-button {
+    background-color: var(--apple-blue);
+    color: var(--apple-white);
+    font-size: 15px;
+    font-weight: 500;
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: none;
+    height: 40px;
+    min-width: 100px;
+    cursor: pointer;
+    transition: var(--apple-transition);
+    margin-bottom: 20px;
+}
+
+.show-rate-button:hover:not(:disabled) {
+    background-color: var(--apple-blue-hover);
+}
+
+.show-rate-button:disabled {
+    background-color: var(--apple-gray);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
 /* Responsive Styles */
 @media (min-width: 768px) {
   .two-column-layout {
@@ -864,6 +937,28 @@ tr:hover {
   .item-row {
     grid-template-columns: 100px 1fr 1fr auto;
     gap: 8px;
+  }
+
+  .rate-container {
+    padding: 16px;
+    margin: 12px;
+  }
+
+  .rate-item {
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+
+  .rate-info {
+    gap: 16px;
+  }
+
+  .rate-label {
+    font-size: 13px;
+  }
+
+  .rate-value {
+    font-size: 14px;
   }
 }
 
