@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect} from "react";
 import Axios from "axios";
 import Cookies from 'js-cookie';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import EditItem from './EditItem';
 import EditSplit from './EditSplit';   
+import './style.css';
+
 const hostname = "http://macbook-pro.local:3002";
 
 const EditBill = () => {
@@ -35,7 +37,6 @@ const EditBill = () => {
             toast.error("請先選擇群組");
         }
     }, []);
-
     const fetchBills = async (gid) => {
         try {
             setLoading(true);

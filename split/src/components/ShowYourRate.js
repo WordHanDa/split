@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Axios from 'axios';
 import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
+import './style.css';
 
 let hostname = "http://macbook-pro.local:3002";
 

@@ -3,6 +3,7 @@ import Axios from "axios";
 import Cookies from "js-cookie";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import './style.css';
 
 const hostname = "http://macbook-pro.local:3002";
 
@@ -15,14 +16,12 @@ const EditItem = ({ billId, billAmount, onUpdate, onBillUpdate }) => {
     }]);
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [groupId, setGroupId] = useState(null);
 
     useEffect(() => {
         const savedGroup = Cookies.get('selectedGroup');
         if (savedGroup) {
             try {
                 const parsedGroup = JSON.parse(savedGroup);
-                setGroupId(parsedGroup.group_id);
                 fetchUsers(parsedGroup.group_id);
                 if (billId) {
                     fetchItems(billId);

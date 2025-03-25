@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Axios from 'axios';
 import { toast } from 'react-toastify';
+import './style.css';
 
 const hostname = "http://macbook-pro.local:3002";
 
@@ -9,16 +10,8 @@ const EditSplit = ({ billId, groupId, onUpdate }) => {
     const [percentages, setPercentages] = useState({});
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        if (groupId) {
-            fetchUsers();
-        }
-        if (billId) {
-            fetchSplitRecords();
-        }
-    }, [billId, groupId]);
-
-    const fetchUsers = async () => {
+    // Move fetchUsers to useCallback
+    const fetchUsers = useCallback(async () => {
         try {
             const response = await Axios.get(`${hostname}/getUsersByGroupId`, {
                 params: { group_id: groupId }
@@ -28,9 +21,10 @@ const EditSplit = ({ billId, groupId, onUpdate }) => {
             console.error("Error fetching users:", error);
             toast.error("無法取得使用者列表");
         }
-    };
+    }, [groupId]);
 
-    const fetchSplitRecords = async () => {
+    // Move fetchSplitRecords to useCallback
+    const fetchSplitRecords = useCallback(async () => {
         try {
             setLoading(true);
             const response = await Axios.get(`${hostname}/getSplitRecords`, {
@@ -48,7 +42,17 @@ const EditSplit = ({ billId, groupId, onUpdate }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [billId]);
+
+    // Update useEffect with the memoized functions
+    useEffect(() => {
+        if (groupId) {
+            fetchUsers();
+        }
+        if (billId) {
+            fetchSplitRecords();
+        }
+    }, [groupId, billId, fetchUsers, fetchSplitRecords]);
 
     const handlePercentageChange = (userId, value) => {
         const inputValue = Number(parseFloat(value || 0).toFixed(2));

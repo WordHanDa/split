@@ -5,6 +5,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import AddSplit from './AddSplit';
 import AddItem from './AddItem';
+import './style.css';
 
 // Define the hostname for API calls
 const hostname = "http://macbook-pro.local:3002";

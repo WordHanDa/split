@@ -3,6 +3,7 @@ import Axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Cookies from 'js-cookie';
+import './style.css';
 
 let hostname = "http://macbook-pro.local:3002";
 
