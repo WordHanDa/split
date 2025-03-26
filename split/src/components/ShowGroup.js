@@ -154,10 +154,9 @@ const ShowGroup = ({ onGroupSelect }) => {
                             ref={listRef}
                             onScroll={handleScroll}
                             style={{ 
-                                overflowX: 'hidden', // Force hidden instead of visible
                                 scrollBehavior: 'smooth',
-                                padding: '0 10px', // Reduced padding when item is selected
-                                margin: selectedGroup ? '0 10px' : '0 40px' // Shrink margins when an item is selected
+                                padding: '50px 10px', // Added vertical padding to make room for buttons
+                                margin: '0 10px'
                             }}
                         >
                             {groupList.map((group) => (
@@ -173,22 +172,26 @@ const ShowGroup = ({ onGroupSelect }) => {
                                 </li>
                             ))}
                         </ul>
-                        <button 
-                            className="arrow-button left" 
-                            onClick={scrollLeft}
-                        >
-                            <svg viewBox="0 0 24 24">
-                                <path d="M15 18l-6-6 6-6" stroke="#ffffff" strokeWidth="2.5" fill="none" />
-                            </svg>
-                        </button>
-                        <button 
-                            className="arrow-button right" 
-                            onClick={scrollRight}
-                        >
-                            <svg viewBox="0 0 24 24">
-                                <path d="M9 6l6 6-6 6" stroke="#ffffff" strokeWidth="2.5" fill="none" />
-                            </svg>
-                        </button>
+                        <div className="navigation-buttons" style={{ position: 'relative', display: 'flex', justifyContent: 'center', marginTop: '-35px' }}>
+                            <button 
+                                className="arrow-button left" 
+                                onClick={scrollLeft}
+                                style={{ position: 'static', margin: '0 10px' }}
+                            >
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M15 18l-6-6 6-6" stroke="#ffffff" strokeWidth="2.5" fill="none" />
+                                </svg>
+                            </button>
+                            <button 
+                                className="arrow-button right" 
+                                onClick={scrollRight}
+                                style={{ position: 'static', margin: '0 10px' }}
+                            >
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M9 6l6 6-6 6" stroke="#ffffff" strokeWidth="2.5" fill="none" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

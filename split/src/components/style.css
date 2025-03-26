@@ -362,7 +362,6 @@ button:disabled,
   position: relative;
   align-items: flex-end;
   min-height: 120px;
-  margin-top: 80px;
   margin-bottom: 20px;
 }
 
@@ -371,9 +370,9 @@ button:disabled,
   flex: 0 0 auto;
   background-color: #f2f2f2;
   border-radius: 10px;
-  padding: 16px 24px;
+  padding: 32px 48px;
   cursor: pointer;
-  min-width: 120px;
+  min-width: 200px;
   text-align: center;
   color: #888;
   font-size: 16px;
@@ -381,7 +380,7 @@ button:disabled,
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 70px;
+  height: 140px;
   margin-bottom: 0;
 }
 
@@ -393,13 +392,17 @@ button:disabled,
   background-color: #d3d3d3;
   color: #000;
   font-weight: 500;
-  transform: scale(1.15);
-  transform-origin: bottom center;
-  min-width: 140px;
+  /* Remove the default transform to avoid double-transformation */
+  transform: none !important;
+  transform-origin: center;
+  min-width: 210px;
   padding: 20px 28px;
   font-size: 18px;
   z-index: 1;
-  height: 90px;
+  height: 150px;
+  /* Remove any default margin adjustments */
+  margin-left: 0 !important;
+  margin-right: 0 !important;
 }
 
 /* Selected group info styling */
@@ -414,61 +417,54 @@ button:disabled,
 
 /* Navigation styling */
 .group-navigation {
-    position: relative;
-    padding: 20px 0;
-    margin-bottom: 20px;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    overflow: visible;
+    margin-bottom: 0;
 }
 
 /* Arrow button styling */
 .arrow-button {
-    position: absolute;
-    width: 40px !important;
-    height: 40px !important;
-    border-radius: 50% !important;
-    background-color: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: none;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    z-index: 10;
-    padding: 0;
+  margin-top: 16px;
+  position: relative;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  bottom: 0px;
 }
 
 .arrow-button.left {
-    left: 50%;
-    transform: translateX(-55px); /* Offset from center */
+    left: calc(50% - 45px);
 }
 
 .arrow-button.right {
-    left: 50%;
-    transform: translateX(15px); /* Offset from center */
+    left: calc(50% + 10px);
+}
+
+.arrow-button svg {
+    width: 20px;
+    height: 20px;
 }
 
 .arrow-button:hover {
     background-color: rgba(0, 0, 0, 0.4);
-    transform: translateX(-55px) scale(1.1); /* Maintain horizontal position while scaling */
-}
-
-.arrow-button.right:hover {
-    transform: translateX(15px) scale(1.1); /* Maintain horizontal position while scaling */
+    transform: scale(1.1);
 }
 
 .arrow-button:active {
-    transform: translateX(-55px) scale(0.95);
+    transform: scale(0.95);
 }
 
-.arrow-button.right:active {
-    transform: translateX(15px) scale(0.95);
+/* Remove old transform styles that were causing issues */
+.arrow-button.right:hover,
+.arrow-button.left:hover,
+.arrow-button.right:active,
+.arrow-button.left:active {
+    transform: scale(1.1);
 }
 
 /* Scroll indicator styling */
@@ -1099,37 +1095,30 @@ tr:hover {
   }
 
   .arrow-button {
-    width: 36px !important;
-    height: 36px !important;
+    width: 32px !important;
+    height: 32px !important;
     bottom: -45px;
   }
 
   .arrow-button.left {
-    transform: translateX(-45px);
+    left: calc(50% - 40px);
   }
 
   .arrow-button.right {
-    transform: translateX(10px);
+    left: calc(50% + 8px);
+  }
+
+  .arrow-button svg {
+    width: 18px;
+    height: 18px;
   }
 
   .arrow-button:hover {
-    transform: translateX(-45px) scale(1.1);
-  }
-
-  .arrow-button.right:hover {
-    transform: translateX(10px) scale(1.1);
+    transform: scale(1.1);
   }
 
   .arrow-button:active {
-    transform: translateX(-45px) scale(0.95);
-  }
-
-  .arrow-button.right:active {
-    transform: translateX(10px) scale(0.95);
-  }
-
-  .group-navigation {
-    padding: 15px 20px;
+    transform: scale(0.95);
   }
 }
 
@@ -1155,10 +1144,6 @@ tr:hover {
   
   .component-section {
     border-radius: 8px;
-  }
-  
-  .add-group-wrapper {
-    padding: 16px 16px 24px;
   }
   
   .add-group-title {
