@@ -9,7 +9,6 @@ const GroupPage = ({ onGroupSelect }) => {
     return (
         <div className="page-container">
             <h1>Group Page</h1>
-            
             <div className="component-section">
                 <h3>Show Groups</h3>
                 <ShowGroup onGroupSelect={onGroupSelect} />

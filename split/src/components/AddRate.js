@@ -76,7 +76,6 @@ const AddRate = () => {
 
     return (
         <div className="add-rate-container">
-            <h3>Add Your Rate</h3>
             {groupId ? (
                 <>
                     <input 

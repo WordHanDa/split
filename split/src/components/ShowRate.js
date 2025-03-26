@@ -27,7 +27,6 @@ const ShowRate = () => {
 
     return (
         <div className="rate-container">
-            <h3>匯率資訊</h3>
             {loading ? (
                 <div className="loading-message">載入中...</div>
             ) : (

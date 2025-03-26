@@ -118,7 +118,7 @@ const EditUser = () => {
     };
 
     return (
-        <div className="update-user-container">
+        <div className="edit-user-container">
             {!groupId ? (
                 <div className="no-group-message">請先選擇群組</div>
             ) : (

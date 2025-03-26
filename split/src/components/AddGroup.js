@@ -33,7 +33,7 @@ const AddGroup = () => {
     };
 
     return (
-      <div className="add-group-wrapper">
+      <div className="add-group-container">
       <input 
           type="text" 
           value={groupName} 

@@ -140,7 +140,6 @@ const EditRate = () => {
     return (
         <div className="edit-rate-container">
             <div className="rate-header">
-                <h3>更新匯率</h3>
                 {selectedRate && (
                     <div className="current-rate">
                         當前匯率: 1 JPY = {calculateExchangeRate(JPY, NTD)} NTD
