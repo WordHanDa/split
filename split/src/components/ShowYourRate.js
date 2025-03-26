@@ -8,7 +8,7 @@ let hostname = "http://macbook-pro.local:3002";
 
 const ShowYourRate = () => {
     const [rateList, setRateList] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [groupId, setGroupId] = useState(null);
 
     // Load group ID from cookies on mount
@@ -25,51 +25,58 @@ const ShowYourRate = () => {
         }
     }, []);
 
-    const getRate = () => {
+    // Fetch rates when groupId is available
+    useEffect(() => {
         if (!groupId) {
-            toast.error("Please select a group first");
+            setLoading(false);
             return;
         }
 
-        setLoading(true);
-        Axios.get(`${hostname}/YOUR_RATE/latest`, {
-            params: { group_id: groupId },
-            timeout: 5000
-        })
-            .then((response) => {
+        const fetchRates = async () => {
+            try {
+                setLoading(true);
+                const response = await Axios.get(`${hostname}/YOUR_RATE/latest`, {
+                    params: { group_id: groupId },
+                    timeout: 5000
+                });
                 setRateList(response.data);
                 if (response.data.length === 0) {
                     toast.info("No rates found for this group");
                 }
-            })
-            .catch((error) => {
+            } catch (error) {
                 console.error("Error fetching rates:", error);
                 toast.error("Failed to fetch rates");
-            })
-            .finally(() => {
+            } finally {
                 setLoading(false);
-            });
-    };
+            }
+        };
+
+        fetchRates();
+    }, [groupId]);
 
     return (
         <div className="show-rate-container">
-            <button 
-                onClick={getRate}
-                disabled={loading || !groupId}
-            >
-                {loading ? 'Loading...' : 'Show Latest Rates'}
-            </button>
-            {rateList.length > 0 && (
-                <ul className="rate-list">
-                    {rateList.map((rate, index) => (
-                        <li key={index} className="rate-item">
-                            <span className="user-name">{rate.user_name}</span>
-                            <span className="rate-values">
-                                JPY: {rate.JPY} | NTD: {rate.NTD}
-                            </span>
-                        </li>
-                    ))}
-                </ul>
+            {loading ? (
+                <div className="loading-message">載入中...</div>
+            ) : !groupId ? (
+                <div className="no-group-message">請先選擇群組</div>
+            ) : (
+                <>
+                    {rateList.length > 0 ? (
+                        <ul className="rate-list">
+                            {rateList.map((rate, index) => (
+                                <li key={index} className="rate-item">
+                                    <span className="user-name">{rate.user_name}</span>
+                                    <span className="rate-values">
+                                        JPY: {rate.JPY} | NTD: {rate.NTD} Rate: {rate.JPY / rate.NTD/100}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <div className="no-rates-message">尚無匯率資料</div>
+                    )}
+                </>
             )}
         </div>
     );

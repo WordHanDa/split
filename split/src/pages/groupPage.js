@@ -12,9 +12,7 @@ const GroupPage = ({ onGroupSelect }) => {
             
             <div className="component-section">
                 <h3>Show Groups</h3>
-                <div className="group-list-container">
-                    <ShowGroup onGroupSelect={onGroupSelect} />
-                </div>
+                <ShowGroup onGroupSelect={onGroupSelect} />
             </div>
             
             <div className="two-column-layout">

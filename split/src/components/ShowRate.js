@@ -37,11 +37,11 @@ const ShowRate = () => {
                             <div className="rate-info">
                                 <div>
                                     <span className="rate-label">現金匯率：</span>
-                                    <span className="rate-value">{rate.cash_rate}</span>
+                                    <span className="rate-value">{rate.cash_rate/10000}</span>
                                 </div>
                                 <div>
                                     <span className="rate-label">即期匯率：</span>
-                                    <span className="rate-value">{rate.spot_rate}</span>
+                                    <span className="rate-value">{rate.spot_rate/10000}</span>
                                 </div>
                             </div>
                         </li>

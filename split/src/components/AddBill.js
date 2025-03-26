@@ -328,8 +328,7 @@ const AddBill = () => {
         <div className="add-bill-container" style={{ position: 'relative' }}>
             {/* Toast container positioned with a higher z-index */}
             <ToastContainer/>
-            
-            <h2>Add Bill</h2>
+
             
             {/* Inputs are NOT wrapped in a form to avoid auto submission */}
             <div className="bill-inputs">

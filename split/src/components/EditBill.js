@@ -176,8 +176,6 @@ const EditBill = () => {
 
     return (
         <div className="edit-bill-container">
-            <h3>編輯帳單</h3>
-            
             {!groupId ? (
                 <div className="no-group-message">請先選擇群組</div>
             ) : (
