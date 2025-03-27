@@ -4,7 +4,7 @@ import Axios from 'axios';
 import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
 import 'react-toastify/dist/ReactToastify.css';
-import './style.css';
+import './css/groupUser.css';
 
 const hostname = "http://macbook-pro.local:3002";
 

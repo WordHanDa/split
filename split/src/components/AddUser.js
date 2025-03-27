@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import './style.css';
+import './css/user.css';
 
 const hostname = "http://macbook-pro.local:3002";
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Axios from 'axios';
 import { toast } from 'react-toastify';
-import './style.css';
+import './css/bill.css';
 
 const hostname = "http://macbook-pro.local:3002";
 

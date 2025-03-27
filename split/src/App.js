@@ -8,7 +8,6 @@ import BillPage from './pages/billPage';
 import ResultPage from './pages/resultPage';
 import GroupUserPage from './pages/groupUserPage';
 import Cookies from 'js-cookie';
-import './components/style.css';
 import './mobile-menu.css';
 
 const App = () => {

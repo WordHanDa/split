@@ -1,0 +1,115 @@
+/* Styles for rate-related components (AddRate.js, EditRate.js, ShowRate.js, ShowYourRate.js) */
+
+/* Rate containers */
+.add-rate-container,
+.edit-rate-container,
+.rate-container,
+.show-rate-container {
+  background-color: var(--apple-white);
+  border-radius: 12px;
+  box-sizing: border-box;
+  border: 0.1px solid #CCC;
+  padding: 24px;
+  max-width: 800px;
+}
+
+/* Rate header */
+.rate-header {
+  margin-bottom: 20px;
+}
+
+.current-rate {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--apple-black);
+  padding: 10px 16px;
+  background-color: var(--apple-light-background);
+  border-radius: 8px;
+}
+
+/* Rate form */
+.rate-form {
+  margin-top: 20px;
+}
+
+.rate-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--apple-border);
+  border-radius: 6px;
+  font-size: 14px;
+  height: 36px;
+}
+
+.rate-select {
+  margin-bottom: 16px;
+}
+
+/* Rate list */
+.rate-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+}
+
+.rate-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background-color: var(--apple-light-background);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  transition: var(--apple-transition);
+}
+
+.rate-item:hover {
+  background-color: rgba(0, 113, 227, 0.05);
+}
+
+.rate-info {
+  display: flex;
+  gap: 24px;
+}
+
+.rate-label {
+  color: var(--apple-gray);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.rate-value {
+  color: var(--apple-black);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.rate-values {
+  color: var(--apple-gray);
+  font-size: 14px;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .rate-container {
+    padding: 16px;
+    margin: 12px;
+  }
+
+  .rate-item {
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+
+  .rate-info {
+    gap: 16px;
+  }
+
+  .rate-label {
+    font-size: 13px;
+  }
+
+  .rate-value {
+    font-size: 14px;
+  }
+}

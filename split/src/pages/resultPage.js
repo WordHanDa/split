@@ -1,7 +1,7 @@
 import React from 'react';
 import ShowResult from '../components/ShowResult';
-import '../components/style.css';
 import '../page.css';
+import '../components/css/common.css';
 
 const ResultPage = () => {
     return (

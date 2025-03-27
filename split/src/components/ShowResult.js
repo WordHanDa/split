@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Axios from "axios";
 import Cookies from 'js-cookie';
-import './style.css';
+import './css/result.css';
 
 const hostname = "http://macbook-pro.local:3002";
 

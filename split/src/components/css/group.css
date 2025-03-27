@@ -1,0 +1,215 @@
+/* Styles for group-related components (AddGroup.js, EditGroup.js, ShowGroup.js) */
+
+/* Group containers */
+.add-group-container,
+.edit-group-container {
+  background-color: var(--apple-white);
+  border-radius: 12px;
+  box-sizing: border-box;
+  border: 0.1px solid #CCC;
+  padding: 24px;
+  max-width: 800px;
+}
+
+.show-group-container {
+  background-color: var(--apple-white);
+  border-radius: 12px;
+  max-width: 100%;
+}
+
+.show-group-container h1 {
+  font-size: 24px;
+  color: #333;
+  margin: 10px 0 15px 0;
+  padding-left: 10px;
+}
+
+.group-content {
+  min-height: 300px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Group page specific */
+.group-page-section {
+  padding: 0 30px 30px;
+}
+
+.add-group-title {
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--apple-black);
+  margin-bottom: 24px;
+  font-family: var(--apple-font);
+}
+
+.add-group-input {
+  width: 100%;
+  height: 50px;
+  border-radius: 12px;
+  border: 1px solid var(--apple-border);
+  padding: 0 16px;
+  font-size: 17px;
+  font-weight: 400;
+  color: var(--apple-black);
+  background-color: var(--apple-white);
+  transition: var(--apple-transition);
+  margin-bottom: 24px;
+}
+
+.add-group-input:focus {
+  outline: none;
+  border-color: var(--apple-blue);
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.2);
+}
+
+.add-group-input::placeholder {
+  color: var(--apple-gray);
+}
+
+/* Group list styling */
+.group-list {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 15px;
+  padding: 0;
+  margin: 0 40px;
+  list-style: none;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  align-items: flex-end;
+  min-height: 120px;
+  margin-bottom: 20px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.group-list::-webkit-scrollbar {
+  display: none;
+}
+
+/* Group item styling */
+.group-item {
+  flex: 0 0 auto;
+  background-color: #f2f2f2;
+  border-radius: 10px;
+  padding: 32px 48px;
+  cursor: pointer;
+  min-width: 200px;
+  text-align: center;
+  color: #888;
+  font-size: 32px;
+  transition: var(--apple-transition);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 140px;
+  margin-bottom: 0;
+}
+
+.group-item:hover {
+  background-color: #e8e8e8;
+}
+
+.group-item.selected {
+  background-color: #d3d3d3;
+  color: #000;
+  font-weight: 500;
+  min-width: 210px;
+  padding: 20px 28px;
+  font-size: 42px;
+  z-index: 1;
+  height: 150px;
+}
+
+/* Arrow button styling */
+.arrow-button {
+  margin-top: 16px;
+  position: relative;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: none;
+  cursor: pointer;
+  transition: var(--apple-transition);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  bottom: 0px;
+}
+
+.arrow-button.left {
+  left: calc(50% - 45px);
+}
+
+.arrow-button.right {
+  left: calc(50% + 10px);
+}
+
+.arrow-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.arrow-button:hover {
+  background-color: rgba(0, 0, 0, 0.4);
+  transform: scale(1.1);
+}
+
+.arrow-button:active {
+  transform: scale(0.95);
+}
+
+/* Show group button */
+.show-group-button {
+  background-color: var(--apple-blue);
+  color: var(--apple-white);
+  font-size: 14px;
+  font-weight: 400;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--apple-transition);
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  min-width: 80px;
+}
+
+.show-group-button:hover:not(:disabled) {
+  background-color: var(--apple-blue-hover);
+}
+
+.show-group-button:disabled {
+  background-color: var(--apple-gray);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+@media (max-width: 768px) {
+  .arrow-button {
+    width: 32px !important;
+    height: 32px !important;
+    bottom: -45px;
+  }
+
+  .arrow-button.left {
+    left: calc(50% - 40px);
+  }
+
+  .arrow-button.right {
+    left: calc(50% + 8px);
+  }
+
+  .arrow-button svg {
+    width: 18px;
+    height: 18px;
+  }
+}

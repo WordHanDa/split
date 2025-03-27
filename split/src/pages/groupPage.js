@@ -2,7 +2,6 @@ import React from 'react';
 import ShowGroup from '../components/ShowGroup';
 import AddGroup from '../components/AddGroup';
 import EditGroup from '../components/EditGroup';
-import '../components/style.css';
 import '../page.css';
 
 const GroupPage = ({ onGroupSelect }) => {

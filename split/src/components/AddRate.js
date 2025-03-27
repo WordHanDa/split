@@ -3,7 +3,7 @@ import Axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Cookies from 'js-cookie';
-import './style.css';
+import './css/rate.css';
 
 let hostname = "http://macbook-pro.local:3002";
 
@@ -101,7 +101,7 @@ const AddRate = () => {
                             </option>
                         ))}
                     </select>
-                    <button onClick={add}>ADD</button>
+                    <button className='add-button' onClick={add}>ADD</button>
                     {rate !== null && <p>Converted Rate: {rate}</p>}
                 </>
             ) : (

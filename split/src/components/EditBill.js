@@ -5,7 +5,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import EditItem from './EditItem';
 import EditSplit from './EditSplit';   
-import './style.css';
+import './css/bill.css';
 
 const hostname = "http://macbook-pro.local:3002";
 

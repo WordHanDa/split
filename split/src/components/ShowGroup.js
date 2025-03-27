@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Axios from 'axios';
-import './style.css';
+import './css/group.css';
 
 const hostname = "http://macbook-pro.local:3002";
 
