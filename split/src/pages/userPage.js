@@ -2,7 +2,6 @@ import React from 'react';
 import ShowUser from '../components/ShowUser';
 import AddUser from '../components/AddUser';
 import EditUser from '../components/EditUser';
-import '../page.css';
 
 const UserPage = () => {
     return (

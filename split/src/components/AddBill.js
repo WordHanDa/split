@@ -7,7 +7,6 @@ import AddSplit from './AddSplit';
 import AddItem from './AddItem';
 import './css/bill.css';
 
-
 // Define the hostname for API calls
 const hostname = "http://macbook-pro.local:3002";
 

@@ -3,7 +3,6 @@ import AddGroupUser from '../components/AddGroupUser';
 import EditGroupUser from '../components/EditGroupUser';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import '../page.css';
 
 const GroupUserPage = () => {
     return (

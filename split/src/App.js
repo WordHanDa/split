@@ -9,7 +9,7 @@ import ResultPage from './pages/resultPage';
 import GroupUserPage from './pages/groupUserPage';
 import Cookies from 'js-cookie';
 import './mobile-menu.css';
-
+import './components/css/common.css';
 const App = () => {
     const [selectedGroup, setSelectedGroup] = useState(null);
     const [menuOpen, setMenuOpen] = useState(false);

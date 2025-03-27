@@ -16,78 +16,44 @@
     --apple-shadow: rgba(0, 0, 0, 0.1);
     --apple-radius: 8px;
     --apple-transition: all 0.2s ease;
-  }
+}
   
-  * {
+* {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-  }
+}
   
-  body {
+body {
     font-family: var(--apple-font);
     background-color: var(--apple-light-background);
     color: var(--apple-black);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-  }
+}
   
-  /* Typography */
-  h1, h2, h3 {
+/* Typography */
+h1, h2, h3 {
     font-weight: 600;
     color: var(--apple-black);
     margin-bottom: 24px;
-  }
+}
   
-  h1 {
+h1 {
     font-size: 28px;
     margin: 20px 0 24px;
-  }
+}
   
-  h2 {
+h2 {
     font-size: 24px;
-  }
+}
   
-  h3 {
+h3 {
     font-size: 20px;
-  }
-  
-  /* Apple-style navigation */
-  .apple-nav {
-    display: flex;
-    background-color: var(--apple-dark-background);
-    width: 100%;
-    height: 44px;
-    overflow-x: auto;
-    white-space: nowrap;
-    -webkit-overflow-scrolling: touch;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    justify-content: space-between;
-    padding: 0 20px;
-  }
-  
-  .nav-links {
-    display: flex;
-    align-items: center;
-    height: 100%;
-  }
-  
-  .nav-links a {
-    color: white;
-    text-decoration: none;
-    margin: 0 35px 0 0;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    font-size: 12px;
-    font-weight: 400;
-    transition: background-color 0.2s;
-  }
-  
-  .current-group-text {
+}
+
+.current-group-text {
     color: white;
     font-size: 12px;
     opacity: 0.7;
@@ -95,46 +61,46 @@
     display: flex;
     align-items: center;
     height: 100%;
-  }
+}
   
-  /* Page container styles */
-  .page-container {
+/* Page container styles */
+.page-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
-  }
+}
   
-  /* Component section container */
-  .component-section {
+/* Component section container */
+.component-section {
     background-color: var(--apple-white);
     border-radius: 12px;
     box-shadow: 0 1px 2px var(--apple-shadow);
     margin-bottom: 24px;
     overflow: hidden;
-  }
+}
   
-  .component-section h3 {
+.component-section h3 {
     padding: 16px 20px;
     margin: 0;
     font-size: 18px;
     font-weight: 500;
-  }
+}
   
-  /* Two-column layout for related components */
-  .two-column-layout {
+/* Two-column layout for related components */
+.two-column-layout {
     display: grid;
     grid-template-columns: 1fr;
     gap: 24px;
     margin-bottom: 24px;
-  }
+}
   
-  /* Form elements */
-  input, select, textarea, button {
+/* Form elements */
+input, select, textarea, button {
     font-family: var(--apple-font);
-  }
+}
   
-  /* iPhone-style select styling */
-  select {
+/* iPhone-style select styling */
+select {
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -158,37 +124,37 @@
     overflow: hidden;
     margin-bottom: 16px;
     height: 44px;
-  }
+}
   
-  select:focus {
+select:focus {
     outline: none;
     border-color: #0066cc;
     box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2);
-  }
+}
   
-  select:hover {
+select:hover {
     background-color: #ebebeb;
-  }
+}
   
-  select::-ms-expand {
+select::-ms-expand {
     display: none;
-  }
+}
   
-  select option:first-child {
+select option:first-child {
     color: var(--apple-black);
-  }
+}
   
-  select:disabled {
+select:disabled {
     background-color: var(--apple-light-background);
     color: var(--apple-gray);
     cursor: not-allowed;
     opacity: 0.7;
-  }
+}
   
-  /* Text inputs and textarea */
-  input[type="text"],
-  input[type="number"],
-  textarea {
+/* Text inputs and textarea */
+input[type="text"],
+input[type="number"],
+textarea {
     width: 100%;
     padding: 8px 12px;
     border-radius: 6px;
@@ -200,33 +166,35 @@
     color: var(--apple-black);
     outline: none;
     height: 36px;
-  }
+}
   
-  textarea {
+textarea {
     height: auto;
     min-height: 100px;
     resize: vertical;
-  }
+}
   
-  input:focus,
-  textarea:focus {
+input:focus,
+textarea:focus {
     border-color: var(--apple-blue);
     box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.2);
-  }
+}
   
-  input:disabled,
-  textarea:disabled {
+input:disabled,
+textarea:disabled {
     background-color: var(--apple-light-background);
     color: var(--apple-gray);
     cursor: not-allowed;
     opacity: 0.7;
-  }
+}
   
-  .update-button,
-  .delete-button,
-  .remove-button,
-  .add-bill-button,
-  .show-group-button {
+/* Buttons */
+.update-button,
+.delete-button,
+.remove-button,
+.add-bill-button,
+.show-group-button,
+.add-button {
     font-size: 14px;
     font-weight: 400;
     padding: 8px 16px;
@@ -240,105 +208,71 @@
     justify-content: center;
     height: 33px;
     min-width: 60px;
-  }
+}
 
 /* Update button - outlined style */
 .update-button {
-  background-color: var(--apple-white);
-  border: 1px solid var(--apple-blue);
-  color: var(--apple-blue);
+    background-color: var(--apple-white);
+    border: 1px solid var(--apple-blue);
+    color: var(--apple-blue);
 }
 
 .update-button:hover:not(:disabled) {
-  background-color: var(--apple-blue);
-  color: var(--apple-white);
+    background-color: var(--apple-blue);
+    color: var(--apple-white);
 }
 
-/* Update button disabled state - specific styling */
-.update-button:disabled {
-  background-color: var(--apple-gray);
-  color: var(--apple-white);
-  border: none;
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-/* Explicitly set these buttons to filled style */
+/* Filled style buttons */
+.add-button,
 .add-bill-button,
 .show-group-button {
-  background-color: var(--apple-blue);
-  color: var(--apple-white);
-  border: none;
+    background-color: var(--apple-blue);
+    color: var(--apple-white);
+    border: none;
 }
 
+.add-button:hover:not(:disabled),
 .add-bill-button:hover:not(:disabled),
 .show-group-button:hover:not(:disabled) {
-  background-color: var(--apple-blue-hover);
+    background-color: var(--apple-blue-hover);
 }
 
 /* Danger button (red) */
 .delete-button,
 .remove-button {
-  background-color: var(--apple-red);
-  color: var(--apple-white);
-  border: none;
+    background-color: var(--apple-red);
+    color: var(--apple-white);
+    border: none;
 }
 
 .delete-button:hover:not(:disabled),
 .remove-button:hover:not(:disabled) {
-  background-color: var(--apple-red-hover);
+    background-color: var(--apple-red-hover);
 }
 
-  /* Success button */
-.add-button {
-  background-color: var(--apple-blue);
-  color: var(--apple-white);
-  font-size: 14px;
-  font-weight: 500;
-  padding: 0 20px;
-  border-radius: 33px;
-  border: none;
-  height: 33px;
-  min-width: 60px;
-  cursor: pointer;
-  transition: var(--apple-transition);
-}
-  
-  .add-button:hover:not(:disabled) {
-    background-color: var(--apple-blue-hover);
-  }
-  
-  /* Danger button (red) */
-  .delete-button,
-  .remove-button {
-    background-color: var(--apple-red);
-    color: var(--apple-white);
-  }
-  
-  .delete-button:hover:not(:disabled),
-  .remove-button:hover:not(:disabled) {
-    background-color: var(--apple-red-hover);
-  }
-  
-  /* Disabled buttons */
-  .add-button:disabled,
-  .update-button:disabled,
-  .delete-button:disabled,
-  .remove-button:disabled {
+/* Disabled buttons */
+.add-button:disabled,
+.update-button:disabled,
+.delete-button:disabled,
+.remove-button:disabled,
+.add-bill-button:disabled,
+.show-group-button:disabled {
     background-color: var(--apple-gray);
+    color: var(--apple-white);
     cursor: not-allowed;
     opacity: 0.6;
-  }
+    border: none;
+}
   
-  /* Checkbox styling */
-  .checkbox-container {
+/* Checkbox styling */
+.checkbox-container {
     display: flex;
     align-items: center;
     margin-bottom: 16px;
     cursor: pointer;
-  }
+}
   
-  .checkbox-container input[type="checkbox"] {
+.checkbox-container input[type="checkbox"] {
     margin-right: 8px;
     -webkit-appearance: none;
     appearance: none;
@@ -350,14 +284,14 @@
     cursor: pointer;
     transition: var(--apple-transition);
     position: relative;
-  }
+}
   
-  .checkbox-container input[type="checkbox"]:checked {
+.checkbox-container input[type="checkbox"]:checked {
     background-color: var(--apple-blue);
     border-color: var(--apple-blue);
-  }
+}
   
-  .checkbox-container input[type="checkbox"]:checked:after {
+.checkbox-container input[type="checkbox"]:checked:after {
     content: '';
     position: absolute;
     top: 5px;
@@ -367,44 +301,44 @@
     border: solid var(--apple-white);
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
-  }
+}
   
-  .checkbox-container label {
+.checkbox-container label {
     font-size: 14px;
     cursor: pointer;
-  }
+}
   
-  /* Message styling */
-  .loading-message,
-  .error-message,
-  .no-groups-message,
-  .no-group-message,
-  .no-users-message,
-  .no-rates-message {
+/* Message styling */
+.loading-message,
+.error-message,
+.no-groups-message,
+.no-group-message,
+.no-users-message,
+.no-rates-message {
     padding: 16px;
     text-align: center;
     color: #666;
-  }
+}
   
-  .error-message {
+.error-message {
     color: var(--apple-red);
     background-color: rgba(255, 59, 48, 0.1);
-  }
+}
   
-  .no-group-message,
-  .no-users-message,
-  .no-rates-message {
+.no-group-message,
+.no-users-message,
+.no-rates-message {
     background-color: var(--apple-light-background);
     color: var(--apple-gray);
-  }
+}
   
-  .loading-message {
+.loading-message {
     background-color: rgba(0, 113, 227, 0.08);
     color: var(--apple-blue);
-  }
+}
   
-  /* Tables */
-  table {
+/* Tables */
+table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
@@ -412,145 +346,71 @@
     overflow: hidden;
     border-radius: 8px;
     box-shadow: 0 1px 2px var(--apple-shadow);
-  }
+}
   
-  th, td {
+th, td {
     padding: 12px 16px;
     text-align: left;
     border-bottom: 1px solid var(--apple-border);
-  }
+}
   
-  th {
+th {
     background-color: var(--apple-light-background);
     font-weight: 500;
     color: var(--apple-black);
     font-size: 14px;
-  }
+}
   
-  tr:last-child td {
+tr:last-child td {
     border-bottom: none;
-  }
+}
   
-  tr:hover {
+tr:hover {
     background-color: rgba(0, 0, 0, 0.02);
-  }
+}
   
-  .positive-balance {
+.positive-balance {
     color: var(--apple-green);
-  }
+}
   
-  .negative-balance {
+.negative-balance {
     color: var(--apple-red);
-  }
+}
   
-  /* Input group */
-  .input-group {
+/* Input group */
+.input-group {
     margin-bottom: 16px;
-  }
+}
   
-  .input-group label {
+.input-group label {
     display: block;
     margin-bottom: 6px;
     font-size: 14px;
     color: var(--apple-gray);
-  }
+}
   
-  /* Component containers */
-  .edit-group-container,
-  .edit-user-container,
-  .add-bill-container,
-  .add-rate-container,
-  .edit-bill-container,
-  .add-user-container,
-  .add-group-user-container,
-  .edit-group-user-container,
-  .edit-rate-container,
-  .rate-container {
+/* Component containers */
+.edit-group-container,
+.edit-user-container,
+.add-bill-container,
+.add-rate-container,
+.edit-bill-container,
+.add-user-container,
+.add-group-user-container,
+.edit-group-user-container,
+.edit-rate-container,
+.rate-container {
     background-color: var(--apple-white);
     border-radius: 12px;
     box-sizing: border-box;
     border: 0.1px solid #CCC;
     padding: 24px;
     max-width: 800px;
-  }
+}
 
-  
-  /* Responsive Styles */
-  @media (min-width: 768px) {
+/* Responsive media query for desktop layout */
+@media (min-width: 769px) {
     .two-column-layout {
-      grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr 1fr;
     }
-  }
-  
-  @media (max-width: 768px) {
-    .apple-nav {
-      padding: 0 10px;
-      overflow-x: auto;
-    }
-    
-    .nav-links {
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      padding-right: 10px;
-    }
-    
-    .nav-links a {
-      white-space: nowrap;
-      margin: 0 15px 0 0;
-      font-size: 11px;
-    }
-    
-    .current-group-text {
-      font-size: 11px;
-      white-space: nowrap;
-      max-width: 120px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    
-    .page-container {
-      padding: 0 12px;
-    }
-    
-    h1 {
-      font-size: 24px;
-      margin: 16px 0 20px;
-    }
-    
-    .component-section h3 {
-      font-size: 16px;
-      padding: 12px 16px;
-    }
-
-  }
-  
-  @media (max-width: 480px) {
-    .apple-nav {
-      justify-content: flex-start;
-    }
-    
-    .current-group-text {
-      position: absolute;
-      right: 10px;
-      max-width: 100px;
-    }
-    
-    .page-container {
-      padding: 0 10px;
-    }
-    
-    h1 {
-      font-size: 22px;
-      margin: 12px 0 16px;
-    }
-    
-    .component-section {
-      border-radius: 8px;
-    }
-    
-    .button-group {
-      flex-direction: column;
-      gap: 8px;
-    }
-  }
+}

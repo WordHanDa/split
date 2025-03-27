@@ -52,7 +52,31 @@ h1 {
   margin-bottom: 24px;
 }
 
-/* Responsive adjustments */
+/* Page specific sections */
+.group-page-section {
+  margin: 20px;
+  padding: 0;
+}
+
+.group-list-container {
+  padding: 20px;
+}
+
+.rate-page-section,
+.user-page-section,
+.bill-page-section,
+.result-page-section,
+.group-user-container {
+  padding: 20px;
+}
+
+/* Responsive Styles */
+@media (min-width: 769px) {
+  .two-column-layout {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   .page-container {
     padding: 0 12px;
@@ -68,13 +92,22 @@ h1 {
     padding: 12px 16px;
   }
   
-  .group-page-section {
-    padding: 0 16px 20px;
+  .group-page-section,
+  .rate-page-section,
+  .user-page-section,
+  .bill-page-section,
+  .result-page-section,
+  .group-user-container {
+    padding: 16px;
   }
   
   .two-column-layout {
-    grid-template-columns: 1fr;
     gap: 16px;
+  }
+  
+  /* Main content padding to prevent it from being hidden under the fixed navbar */
+  .main-content {
+    padding-top: 44px;
   }
 }
 
@@ -91,39 +124,15 @@ h1 {
   .component-section {
     border-radius: 8px;
   }
-}
-
-/* Group page specific */
-.group-page-section {
-  margin: 20px;
-  padding: 0 0px 0px;
-}
-
-.group-list-container {
-  padding: 20px;
-}
-
-/* Rate page specific */
-.rate-page-section {
-  padding: 20px;
-}
-
-/* User page specific */
-.user-page-section {
-  padding: 20px;
-}
-
-/* Bill page specific */
-.bill-page-section {
-  padding: 20px;
-}
-
-/* Result page specific */
-.result-page-section {
-  padding: 20px;
-}
-
-/* Group user page specific */
-.group-user-container {
-  padding: 20px;
+  
+  .button-group {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .current-group-text {
+    position: absolute;
+    right: 10px;
+    max-width: 100px;
+  }
 }
