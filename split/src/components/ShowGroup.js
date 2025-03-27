@@ -173,7 +173,6 @@ const ShowGroup = ({ onGroupSelect }) => {
                             ))}
                         </ul>
                         <div className="navigation-buttons" style={{ position: 'relative', display: 'flex', justifyContent: 'center', marginTop: '-35px' }}>
-                                </svg>
                         <button
                             className="arrow-button left"
                             onClick={scrollLeft}
