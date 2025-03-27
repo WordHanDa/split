@@ -65,8 +65,9 @@ const ShowResult = () => {
         ) : (
             <div className="balance-summary-content">
                 <div className="totals-container">
-                    <div className="total-item">Total Advanced: {balanceData.groupTotals.total_advanced} NTD</div>
-                    <div className="total-item">Total Cost: {balanceData.groupTotals.total_cost} NTD</div>
+                    <div className="total-item">Total Advanced: $ {balanceData.groupTotals.total_advanced}</div>
+                    <div className="total-item">Total Cost: $ {balanceData.groupTotals.total_cost}</div>
+                    <div className="total-item">currency: NTD</div>
                 </div>
                 
                 {balanceData.userBalances.length > 0 ? (
@@ -84,10 +85,10 @@ const ShowResult = () => {
                             {balanceData.userBalances.map(user => (
                                 <tr key={user.user_id}>
                                     <td>{user.user_name}</td>
-                                    <td>{user.total_advanced} NTD</td>
-                                    <td>{user.total_cost} NTD</td>
+                                    <td>{user.total_advanced}</td>
+                                    <td>{user.total_cost}</td>
                                     <td className={user.balance >= 0 ? 'positive-balance' : 'negative-balance'}>
-                                        {user.balance} NTD
+                                        {user.balance}
                                     </td>
                                     <td>{user.bills_paid}</td>
                                 </tr>
