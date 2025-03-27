@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './css/bill.css';
 
-const hostname = "http://macbook-pro.local:3002";
+const hostname = "http://120.126.16.21:3002";
 
 // Modify the component definition to accept billAmount prop
 const EditItem = ({ billId, billAmount, onUpdate, onBillUpdate }) => {

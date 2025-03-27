@@ -4,7 +4,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './css/user.css';
 
-const hostname = "http://macbook-pro.local:3002";
+const hostname = "http://120.126.16.21:3002";
 
 const AddUser = ({ onUserAdded }) => {
     const [userName, setUserName] = useState("");

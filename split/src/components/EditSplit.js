@@ -3,7 +3,7 @@ import Axios from 'axios';
 import { toast } from 'react-toastify';
 import './css/bill.css';
 
-const hostname = "http://macbook-pro.local:3002";
+const hostname = "http://120.126.16.21:3002";
 
 const EditSplit = ({ billId, groupId, onUpdate }) => {
     const [users, setUsers] = useState([]);

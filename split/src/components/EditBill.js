@@ -7,7 +7,7 @@ import EditItem from './EditItem';
 import EditSplit from './EditSplit';   
 import './css/bill.css';
 
-const hostname = "http://macbook-pro.local:3002";
+const hostname = "http://120.126.16.21:3002";
 
 const EditBill = () => {
     const [bills, setBills] = useState([]);
