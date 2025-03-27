@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Axios from "axios";
 import Cookies from 'js-cookie';
+import './css/result.css';
 
 const hostname = "http://120.126.16.21:3002";
 
@@ -52,22 +53,24 @@ const ShowResult = () => {
     }
 
     return (
-        <div className="show-result-container">
-            {error && (
-                <div className="error-message">
-                    {error}
+        <div className="balance-summary-container">
+        <div className="balance-summary-header">
+            <h3 className="balance-summary-title">Group Balance Summary</h3>
+        </div>
+        
+        {error ? (
+            <div className="error-message">
+                {error}
+            </div>
+        ) : (
+            <div className="balance-summary-content">
+                <div className="totals-container">
+                    <div className="total-item">Total Advanced: ¥{balanceData.groupTotals.total_advanced}</div>
+                    <div className="total-item">Total Cost: ¥{balanceData.groupTotals.total_cost}</div>
                 </div>
-            )}
-
-            {balanceData.userBalances.length > 0 && (
-                <div className="balance-results">
-                    <h3>Group Balance Summary</h3>
-                    <div className="group-totals">
-                        <p>Total Advanced: ¥{balanceData.groupTotals.total_advanced}</p>
-                        <p>Total Cost: ¥{balanceData.groupTotals.total_cost}</p>
-                    </div>
-                    
-                    <table>
+                
+                {balanceData.userBalances.length > 0 ? (
+                    <table className="balance-table">
                         <thead>
                             <tr>
                                 <th>Name</th>
@@ -83,7 +86,7 @@ const ShowResult = () => {
                                     <td>{user.user_name}</td>
                                     <td>¥{user.total_advanced}</td>
                                     <td>¥{user.total_cost}</td>
-                                    <td className={user.balance >= 0 ? 'positive' : 'negative'}>
+                                    <td className={user.balance >= 0 ? 'positive-balance' : 'negative-balance'}>
                                         ¥{user.balance}
                                     </td>
                                     <td>{user.bills_paid}</td>
@@ -91,9 +94,12 @@ const ShowResult = () => {
                             ))}
                         </tbody>
                     </table>
-                </div>
-            )}
-        </div>
+                ) : (
+                    <div className="no-data-message">No balance data available</div>
+                )}
+            </div>
+        )}
+    </div>
     );
 };
 

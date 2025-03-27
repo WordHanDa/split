@@ -1,32 +1,58 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Axios from "axios";
+import './css/rate.css';
 
 let hostname = "http://120.126.16.21:3002";
 
-const ShowRate = () => {  // ✅ Ensure the function starts with an uppercase letter
+const ShowRate = () => {
     const [rateList, setRateList] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const getRate = () => {
-        Axios.get(hostname + "/RATE", { timeout: 5000 })
-          .then((response) => {
-            console.log(response.data);
+    const getRate = async () => {
+        try {
+            setLoading(true);
+            const response = await Axios.get(`${hostname}/RATE`, { timeout: 5000 });
             setRateList(response.data);
-          })
-          .catch((error) => console.error("Error fetching data:", error));
-      };
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Fetch rates on component mount
+    useEffect(() => {
+        getRate();
+    }, []);
 
     return (
-        <div>
-            <button onClick={getRate}>Show Rate</button>
-            <ul>
-                {rateList.map((rate, index) => (
-                    <li key={index}>
-                        {rate.rate_id} spot_rate: {rate.spot_rate} cash_rate: {rate.cash_rate}
-                    </li>
-                ))}
-            </ul>
+        <div className="rate-container">
+            {loading ? (
+                <div className="loading-message">載入中...</div>
+            ) : (
+                <ul className="rate-list">
+                    {rateList.map((rate) => (
+                        <li key={rate.rate_id} className="rate-item">
+                            <div className="rate-info">
+                                <div>
+                                    <span className="rate-label">現金匯率：</span>
+                                    <span className="rate-value">{rate.cash_rate/10000}</span>
+                                </div>
+                                <div>
+                                    <span className="rate-label">即期匯率：</span>
+                                    <span className="rate-value">{rate.spot_rate/10000}</span>
+                                </div>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            )}
+
+            {rateList.length === 0 && !loading && (
+                <div className="no-rates-message">尚無匯率資料</div>
+            )}
         </div>
     );
 };
 
-export default ShowRate; // ✅ Ensure correct export
+export default ShowRate;

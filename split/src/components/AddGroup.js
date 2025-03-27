@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Axios from "axios";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import './css/group.css';
 
 let hostname = "http://120.126.16.21:3002";
 
@@ -32,16 +33,22 @@ const AddGroup = () => {
     };
 
     return (
-        <div>
-            <input 
-                type="text" 
-                value={groupName} 
-                onChange={(event) => setGroupName(event.target.value)} 
-                placeholder="Enter group name"
-            />
-            <button onClick={add}>ADD</button>
-            <ToastContainer />
-        </div>
+      <div className="add-group-container">
+      <input 
+          type="text" 
+          value={groupName} 
+          onChange={(event) => setGroupName(event.target.value)} 
+          placeholder="Enter group name"
+          className="add-group-input"
+      />
+      <button 
+          onClick={add}
+          className="add-button"
+      >
+          ADD
+      </button>
+      <ToastContainer/>
+  </div>
     );
 };
 

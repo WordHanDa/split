@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import './App.css';
 import GroupPage from './pages/groupPage';
 import RatePage from './pages/ratePage';
 import UserPage from './pages/userPage';
 import BillPage from './pages/billPage';
 import ResultPage from './pages/resultPage';
+import GroupUserPage from './pages/groupUserPage';
 import Cookies from 'js-cookie';
-
+import './mobile-menu.css';
+import './components/css/common.css';
 const App = () => {
     const [selectedGroup, setSelectedGroup] = useState(null);
+    const [menuOpen, setMenuOpen] = useState(false);
 
     useEffect(() => {
-        // 從 cookies 中讀取選擇的群組
+        // Read selected group from cookies
         const savedGroup = Cookies.get('selectedGroup');
         try {
             if (savedGroup) {
@@ -24,34 +27,87 @@ const App = () => {
         }
     }, []);
 
+    // Add scroll lock effect
+    useEffect(() => {
+        if (menuOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [menuOpen]);
+
     const handleGroupSelect = (group) => {
         setSelectedGroup(group);
-        // 將選擇的群組存儲到 cookies 中
-        Cookies.set('selectedGroup', JSON.stringify(group), { expires: 7 }); // 7 天過期
+        // Store selected group in cookies
+        Cookies.set('selectedGroup', JSON.stringify(group), { expires: 7 }); // 7 days expiration
+    };
+
+    const toggleMenu = () => {
+        setMenuOpen(!menuOpen);
+    };
+
+    // Close menu when a link is clicked
+    const handleLinkClick = () => {
+        if (menuOpen) {
+            setMenuOpen(false);
+        }
     };
 
     return (
         <Router>
-            <div>
-                <nav>
-                    <button onClick={() => window.location.href = '/group'}>Group</button>
-                    <button onClick={() => window.location.href = '/rate'}>Rate</button>
-                    <button onClick={() => window.location.href = '/user'}>User</button>
-                    <button onClick={() => window.location.href = '/bill'}>Bill</button>
-                    <button onClick={() => window.location.href = '/result'}>Result</button>
-                </nav>
-                {selectedGroup && (
-                    <div>
-                        <div>current group: {selectedGroup.group_name}</div>
+            <div className={`app-container ${menuOpen ? 'menu-open' : ''}`}>
+                <nav className={`apple-nav ${menuOpen ? 'menu-open' : ''}`}>
+                    <button 
+                        className="menu-toggle" 
+                        onClick={toggleMenu} 
+                        aria-label="Toggle navigation menu"
+                        aria-expanded={menuOpen}
+                    >
+                        <div className="menu-icon">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </button>
+                    
+                    {/* Add backdrop div */}
+                    <div 
+                        className={`menu-backdrop ${menuOpen ? 'open' : ''}`} 
+                        onClick={toggleMenu}
+                        aria-hidden="true"
+                    />
+                    
+                    <div className={`nav-links ${menuOpen ? 'open' : ''}`}>
+                        <Link to="/group" onClick={handleLinkClick}>Group</Link>
+                        <Link to="/groupUser" onClick={handleLinkClick}>Group User</Link>
+                        <Link to="/user" onClick={handleLinkClick}>User</Link>
+                        <Link to="/rate" onClick={handleLinkClick}>Rate</Link>
+                        <Link to="/bill" onClick={handleLinkClick}>Bill</Link>
+                        <Link to="/result" onClick={handleLinkClick}>Result</Link>
                     </div>
-                )}
-                <Routes>
-                    <Route path="/group" element={<GroupPage onGroupSelect={handleGroupSelect}/>} />
-                    <Route path="/rate" element={<RatePage />} />
-                    <Route path="/user" element={<UserPage />} />
-                    <Route path="/bill" element={<BillPage />} />
-                    <Route path="/result" element={<ResultPage />} />
-                </Routes>
+                    
+                    {selectedGroup && (
+                        <div className="current-group-text">
+                            Current group: {selectedGroup.group_name}
+                        </div>
+                    )}
+                </nav>
+                
+                <div className="main-content">
+                    <Routes>
+                        <Route path="/group" element={<GroupPage onGroupSelect={handleGroupSelect}/>} />
+                        <Route path="/groupUser" element={<GroupUserPage />} />
+                        <Route path="/user" element={<UserPage />} />
+                        <Route path="/rate" element={<RatePage />} />
+                        <Route path="/bill" element={<BillPage />} />
+                        <Route path="/result" element={<ResultPage />} />
+                        <Route path="/" element={<GroupPage onGroupSelect={handleGroupSelect}/>} />
+                    </Routes>
+                </div>
             </div>
         </Router>
     );

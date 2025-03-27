@@ -5,6 +5,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import AddSplit from './AddSplit';
 import AddItem from './AddItem';
+import './css/bill.css';
 
 // Define the hostname for API calls
 const hostname = "http://120.126.16.21:3002";
@@ -326,20 +327,8 @@ const AddBill = () => {
     return (
         <div className="add-bill-container" style={{ position: 'relative' }}>
             {/* Toast container positioned with a higher z-index */}
-            <ToastContainer 
-                enableMultiContainer
-                containerId={TOAST_CONTAINER_ID}
-                autoClose={5000} 
-                hideProgressBar={false}
-                newestOnTop
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-            />
-            
-            <h2>Add Bill</h2>
+            <ToastContainer/>
+
             
             {/* Inputs are NOT wrapped in a form to avoid auto submission */}
             <div className="bill-inputs">

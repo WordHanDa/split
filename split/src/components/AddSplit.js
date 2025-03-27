@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import './css/bill.css';
 
 const AddSplit = ({ groupId, users, onSplitComplete }) => {
     const [percentages, setPercentages] = useState({});

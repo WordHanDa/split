@@ -2,10 +2,10 @@ import React, { useState, useEffect, useCallback } from "react";
 import Axios from "axios";
 import Cookies from "js-cookie";
 import 'react-toastify/dist/ReactToastify.css';
+import './css/bill.css';
 
 let hostname = "http://120.126.16.21:3002";
 
-// We use the parent's toast container - no need for a separate one
 const AddItem = ({ onItemComplete }) => {
     const [items, setItems] = useState([{
         item_amount: "",

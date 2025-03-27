@@ -32,26 +32,6 @@ app.get('/USER', (req, res) => {
     });
 });
 
-app.post('/createRate', (req, res) => {
-    const { JPY, NTD, user_id } = req.body;
-    
-    if (!JPY || !NTD || !user_id || JPY.trim() === "" || NTD.trim() === "") {
-        return res.status(400).json({ error: "JPY, NTD rates and user_id cannot be empty" });
-    }
-
-    db.query(
-        "INSERT INTO YOUR_RATE (JPY, NTD, user_id) VALUES (?, ?, ?)",
-        [JPY, NTD, user_id],
-        (err, result) => {
-            if (err) {
-                console.error("MySQL Error:", err);
-                return res.status(500).json({ error: "Database error" });
-            }
-            res.json({ message: "Rate inserted successfully", result });
-        }
-    );
-});
-
 app.post('/createUser', (req, res) => {
     const name = req.body.name;
     
@@ -72,6 +52,81 @@ app.post('/createUser', (req, res) => {
     );
 });
 
+app.put('/updateUser', (req, res) => {
+    const { user_id, name } = req.body;
+    
+    if (!user_id) {
+        return res.status(400).json({ error: "user_id is required" });
+    }
+    
+    if (!name || name.trim() === "") {
+        return res.status(400).json({ error: "user_name cannot be empty" });
+    }
+
+    db.query(
+        "UPDATE USER SET user_name = ? WHERE user_id = ?",
+        [name, user_id],
+        (err, result) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                return res.status(500).json({ error: "Database error" });
+            }
+            
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ error: "User not found" });
+            }
+            
+            res.json({ 
+                success: true,
+                message: "User updated successfully", 
+                result 
+            });
+        }
+    );
+});
+
+app.delete('/deleteUser', (req, res) => {
+    const { user_id } = req.body;
+    
+    if (!user_id) {
+        return res.status(400).json({ error: "user_id is required" });
+    }
+
+    // First check if user exists
+    db.query(
+        "SELECT * FROM USER WHERE user_id = ?",
+        [user_id],
+        (err, results) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                return res.status(500).json({ error: "Database error" });
+            }
+            
+            if (results.length === 0) {
+                return res.status(404).json({ error: "User not found" });
+            }
+            
+            // User exists, proceed with deletion
+            db.query(
+                "DELETE FROM USER WHERE user_id = ?",
+                [user_id],
+                (err, result) => {
+                    if (err) {
+                        console.error("MySQL Error:", err);
+                        return res.status(500).json({ error: "Database error" });
+                    }
+                    
+                    res.json({ 
+                        success: true,
+                        message: "User deleted successfully", 
+                        result 
+                    });
+                }
+            );
+        }
+    );
+});
+
 app.post('/createGroup', (req, res) => {
     const name = req.body.name;
     
@@ -88,6 +143,134 @@ app.post('/createGroup', (req, res) => {
                 return res.status(500).json({ error: "Database error" });
             }
             res.json({ message: "Group inserted successfully", result });
+        }
+    );
+});
+
+app.put('/updateGroup', (req, res) => {
+    const { group_id, name } = req.body;
+    
+    if (!group_id) {
+        return res.status(400).json({ error: "group_id is required" });
+    }
+    
+    if (!name || name.trim() === "") {
+        return res.status(400).json({ error: "group_name cannot be empty" });
+    }
+
+    db.query(
+        "UPDATE GROUP_TABLE SET group_name = ? WHERE group_id = ?",
+        [name, group_id],
+        (err, result) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                return res.status(500).json({ error: "Database error" });
+            }
+            
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ error: "Group not found" });
+            }
+            
+            res.json({ 
+                success: true,
+                message: "Group updated successfully", 
+                result 
+            });
+        }
+    );
+});
+
+app.delete('/deleteGroup', (req, res) => {
+    const { group_id } = req.body;
+    
+    if (!group_id) {
+        return res.status(400).json({ error: "group_id is required" });
+    }
+
+    // First check if group exists
+    db.query(
+        "SELECT * FROM GROUP_TABLE WHERE group_id = ?",
+        [group_id],
+        (err, results) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                return res.status(500).json({ error: "Database error" });
+            }
+            
+            if (results.length === 0) {
+                return res.status(404).json({ error: "Group not found" });
+            }
+            
+            // Group exists, proceed with deletion
+            db.query(
+                "DELETE FROM GROUP_TABLE WHERE group_id = ?",
+                [group_id],
+                (err, result) => {
+                    if (err) {
+                        console.error("MySQL Error:", err);
+                        return res.status(500).json({ error: "Database error" });
+                    }
+                    
+                    res.json({ 
+                        success: true,
+                        message: "Group deleted successfully", 
+                        result 
+                    });
+                }
+            );
+        }
+    );
+});
+
+app.delete('/api/groups/:groupId', (req, res) => {
+    const groupId = req.params.groupId;
+    
+    if (!groupId) {
+        return res.status(400).json({ 
+            success: false,
+            error: "Group ID is required" 
+        });
+    }
+
+    // First check if group exists
+    db.query(
+        "SELECT * FROM GROUP_TABLE WHERE group_id = ?",
+        [groupId],
+        (err, results) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                return res.status(500).json({ 
+                    success: false,
+                    error: "Database error" 
+                });
+            }
+            
+            if (results.length === 0) {
+                return res.status(404).json({ 
+                    success: false,
+                    error: "Group not found" 
+                });
+            }
+            
+            // Group exists, proceed with deletion
+            db.query(
+                "DELETE FROM GROUP_TABLE WHERE group_id = ?",
+                [groupId],
+                (err, result) => {
+                    if (err) {
+                        console.error("MySQL Error:", err);
+                        return res.status(500).json({ 
+                            success: false,
+                            error: "Database error" 
+                        });
+                    }
+                    
+                    res.json({ 
+                        success: true,
+                        message: "Group deleted successfully" 
+                    });
+                }
+            );
         }
     );
 });
@@ -123,6 +306,89 @@ app.post('/addGroupUser', (req, res) => {
                 }
             );
         }
+    );
+});
+
+app.delete('/removeGroupUser', (req, res) => {
+    const { group_id, user_id } = req.body;
+    
+    if (!group_id || !user_id) {
+      return res.status(400).json({ error: "group_id and user_id are required" });
+    }
+    
+    db.query(
+      "SELECT * FROM GROUP_USER WHERE group_id = ? AND user_id = ?",
+      [group_id, user_id],
+      (err, results) => {
+        if (err) {
+          console.error("MySQL Error:", err);
+          return res.status(500).json({ error: "Database error" });
+        }
+        
+        if (results.length === 0) {
+          return res.status(404).json({ error: "User not in group" });
+        }
+        
+        // Check if user has any bills in this group
+        db.query(
+          "SELECT COUNT(*) AS bill_count FROM BILL_RECORD WHERE group_id = ? AND user_id = ?",
+          [group_id, user_id],
+          (err, billResults) => {
+            if (err) {
+              console.error("MySQL Error:", err);
+              return res.status(500).json({ error: "Database error" });
+            }
+            
+            // If user has bills in this group, don't allow removal
+            if (billResults[0].bill_count > 0) {
+              return res.status(400).json({ 
+                success: false,
+                error: "User has existing bill records in this group and cannot be removed" 
+              });
+            }
+            
+            // Also check if user has split records in this group
+            db.query(
+              "SELECT COUNT(*) AS split_count FROM SPLIT_RECORD sr " +
+              "JOIN BILL_RECORD br ON sr.bill_id = br.bill_id " +
+              "WHERE br.group_id = ? AND sr.user_id = ?",
+              [group_id, user_id],
+              (err, splitResults) => {
+                if (err) {
+                  console.error("MySQL Error:", err);
+                  return res.status(500).json({ error: "Database error" });
+                }
+                
+                // If user has split records in this group, don't allow removal
+                if (splitResults[0].split_count > 0) {
+                  return res.status(400).json({ 
+                    success: false,
+                    error: "User has existing split records in this group and cannot be removed" 
+                  });
+                }
+                
+                // User has no records in this group, proceed with removal
+                db.query(
+                  "DELETE FROM GROUP_USER WHERE group_id = ? AND user_id = ?",
+                  [group_id, user_id],
+                  (err, result) => {
+                    if (err) {
+                      console.error("MySQL Error:", err);
+                      return res.status(500).json({ error: "Database error" });
+                    }
+                    
+                    res.json({ 
+                      success: true,
+                      message: "User removed from group successfully", 
+                      result 
+                    });
+                  }
+                );
+              }
+            );
+          }
+        );
+      }
     );
 });
 
@@ -166,6 +432,141 @@ app.get('/YOUR_RATE', (req, res) => {
     );
 });
 
+app.put('/updateRate', (req, res) => {
+    const { id, JPY, NTD, user_id } = req.body;
+    
+    if (!id) {
+        return res.status(400).json({ error: "Rate id is required" });
+    }
+    
+    // Validate and convert numeric values
+    const parsedJPY = parseFloat(JPY);
+    const parsedNTD = parseFloat(NTD);
+    const parsedUserId = parseInt(user_id);
+
+    if (isNaN(parsedJPY) || isNaN(parsedNTD) || isNaN(parsedUserId)) {
+        return res.status(400).json({ error: "Invalid JPY, NTD, or user_id values" });
+    }
+
+    if (parsedJPY <= 0 || parsedNTD <= 0) {
+        return res.status(400).json({ error: "JPY and NTD must be greater than 0" });
+    }
+    
+    db.query(
+        "SELECT * FROM YOUR_RATE WHERE your_rate_id = ?",
+        [id],
+        (err, results) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                return res.status(500).json({ error: "Database error" });
+            }
+            
+            if (results.length === 0) {
+                return res.status(404).json({ error: "Rate not found" });
+            }
+            
+            db.query(
+                "UPDATE YOUR_RATE SET JPY = ?, NTD = ?, user_id = ? WHERE your_rate_id = ?",
+                [parsedJPY, parsedNTD, parsedUserId, id],
+                (err, result) => {
+                    if (err) {
+                        console.error("MySQL Error:", err);
+                        return res.status(500).json({ error: "Database error" });
+                    }
+                    
+                    res.json({ 
+                        success: true, 
+                        message: "Rate updated successfully", 
+                        result 
+                    });
+                }
+            );
+        }
+    );
+});
+
+app.post('/createRate', (req, res) => {
+    const { JPY, NTD, user_id } = req.body;
+    
+    if (!JPY || !NTD || !user_id || JPY.trim() === "" || NTD.trim() === "") {
+        return res.status(400).json({ error: "JPY, NTD rates and user_id cannot be empty" });
+    }
+
+    db.query(
+        "INSERT INTO YOUR_RATE (JPY, NTD, user_id) VALUES (?, ?, ?)",
+        [JPY, NTD, user_id],
+        (err, result) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                return res.status(500).json({ error: "Database error" });
+            }
+            res.json({ message: "Rate inserted successfully", result });
+        }
+    );
+});
+
+app.delete('/deleteUser', (req, res) => {
+    const { user_id } = req.body;
+    
+    if (!user_id) {
+        return res.status(400).json({ error: "user_id is required" });
+    }
+
+    // First check if user exists
+    db.query(
+        "SELECT * FROM USER WHERE user_id = ?",
+        [user_id],
+        (err, results) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                return res.status(500).json({ error: "Database error" });
+            }
+            
+            if (results.length === 0) {
+                return res.status(404).json({ error: "User not found" });
+            }
+            
+            // NEW: Check if user has any associated bill records
+            db.query(
+                "SELECT COUNT(*) AS bill_count FROM BILL_RECORD WHERE user_id = ?",
+                [user_id],
+                (err, billResults) => {
+                    if (err) {
+                        console.error("MySQL Error:", err);
+                        return res.status(500).json({ error: "Database error" });
+                    }
+                    
+                    // If user has bill records, don't allow deletion
+                    if (billResults[0].bill_count > 0) {
+                        return res.status(400).json({ 
+                            success: false,
+                            error: "User has existing bill records and cannot be deleted" 
+                        });
+                    }else{
+                        // User has no bill records, proceed with deletion
+                    db.query(
+                        "DELETE FROM USER WHERE user_id = ?",
+                        [user_id],
+                        (err, result) => {
+                            if (err) {
+                                console.error("MySQL Error:", err);
+                                return res.status(500).json({ error: "Database error" });
+                            }
+                            
+                            res.json({ 
+                                success: true,
+                                message: "User deleted successfully", 
+                                result 
+                            });
+                        }
+                    );
+                    }
+                }
+            );
+        }
+    );
+});
+
 app.get('/YOUR_RATE/latest', (req, res) => {
     const group_id = req.query.group_id;
     
@@ -200,6 +601,48 @@ app.get('/YOUR_RATE/latest', (req, res) => {
     });
 });
 
+app.get('/YOUR_RATE/user', (req, res) => {
+  const user_id = req.query.user_id;
+  
+  if (!user_id) {
+    return res.status(400).json({
+      success: false,
+      error: "user_id parameter is required"
+    });
+  }
+  
+  const query = `
+    SELECT yr.*, u.user_name
+    FROM YOUR_RATE yr
+    JOIN USER u ON yr.user_id = u.user_id
+    WHERE yr.user_id = ?
+    ORDER BY yr.your_rate_id DESC
+  `;
+  
+  db.query(query, [user_id], (err, results) => {
+    if (err) {
+      console.error("Error fetching user rates:", err);
+      return res.status(500).json({
+        success: false,
+        error: "Error fetching user rates"
+      });
+    }
+    
+    if (results.length === 0) {
+      return res.json({
+        success: true,
+        message: "No rates found for this user",
+        rates: []
+      });
+    }
+    
+    res.json({
+      success: true,
+      rates: results  // Return all results instead of just the first one
+    });
+  });
+});
+
 app.post('/createBill', (req, res) => {
     const { bill_name, amount, user_id, group_id, method, note, create_time, rate_id, credit_card, your_rate_id } = req.body;
 
@@ -228,6 +671,314 @@ app.post('/createBill', (req, res) => {
     );
 });
 
+app.get('/getBillsByGroupId', (req, res) => {
+    const group_id = req.query.group_id;
+
+    if (!group_id) {
+        return res.status(400).json({ 
+            success: false,
+            error: "Group ID is required" 
+        });
+    }
+
+    const query = `
+        SELECT 
+            b.*,
+            u.user_name as payer_name
+        FROM 
+            BILL_RECORD b
+        JOIN 
+            USER u ON b.user_id = u.user_id
+        WHERE 
+            b.group_id = ?
+        ORDER BY 
+            b.create_time DESC
+    `;
+
+    db.query(query, [group_id], (err, results) => {
+        if (err) {
+            console.error("Error fetching bills:", err);
+            return res.status(500).json({ 
+                success: false,
+                error: "Error fetching bills" 
+            });
+        }
+
+        res.json(results);
+    });
+});
+
+app.get('/getBillDetails', (req, res) => {
+    const bill_id = req.query.bill_id;
+
+    if (!bill_id) {
+        return res.status(400).json({ 
+            success: false,
+            error: "Bill ID is required" 
+        });
+    }
+
+    const query = `
+        SELECT 
+            b.*,
+            u.user_name as payer_name
+        FROM 
+            BILL_RECORD b
+        JOIN 
+            USER u ON b.user_id = u.user_id
+        WHERE 
+            b.bill_id = ?
+    `;
+
+    db.query(query, [bill_id], (err, results) => {
+        if (err) {
+            console.error("Error fetching bill details:", err);
+            return res.status(500).json({ 
+                success: false,
+                error: "Error fetching bill details" 
+            });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: "Bill not found"
+            });
+        }
+
+        res.json(results[0]);
+    });
+});
+
+app.put('/updateBill', (req, res) => {
+    const { 
+        bill_id, 
+        bill_name, 
+        amount, 
+        user_id, 
+        group_id, 
+        method, 
+        note = '', 
+        create_time = new Date(), 
+        rate_id = null, 
+        credit_card = false, 
+        your_rate_id = null 
+    } = req.body;
+    
+    // Validate required fields
+    if (!bill_id) {
+        return res.status(400).json({ 
+            success: false, 
+            error: "Bill ID is required"
+        });
+    }
+    
+    if (!bill_name || !amount || !method || !group_id) {
+        return res.status(400).json({ 
+            success: false, 
+            error: "Required fields cannot be empty",
+            missing: {
+                bill_name: !bill_name,
+                amount: !amount,
+                method: !method,
+                group_id: !group_id
+            }
+        });
+    }
+
+    // First check if the bill exists
+    db.query(
+        "SELECT * FROM BILL_RECORD WHERE bill_id = ?",
+        [bill_id],
+        (err, results) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                return res.status(500).json({ 
+                    success: false, 
+                    error: "Database error" 
+                });
+            }
+            
+            if (results.length === 0) {
+                return res.status(404).json({ 
+                    success: false, 
+                    error: "Bill not found" 
+                });
+            }
+            
+            // Prepare update query with only the fields that are present
+            const updates = [];
+            const values = [];
+            
+            if (bill_name) {
+                updates.push('bill_name = ?');
+                values.push(bill_name);
+            }
+            if (amount) {
+                updates.push('amount = ?');
+                values.push(amount);
+            }
+            if (method) {
+                updates.push('method = ?');
+                values.push(method);
+            }
+            updates.push('note = ?');
+            values.push(note);
+            updates.push('credit_card = ?');
+            values.push(credit_card ? 1 : 0);
+            updates.push('group_id = ?');
+            values.push(group_id);
+            
+            if (rate_id !== undefined) {
+                updates.push('rate_id = ?');
+                values.push(rate_id);
+            }
+            if (your_rate_id !== undefined) {
+                updates.push('your_rate_id = ?');
+                values.push(your_rate_id);
+            }
+            
+            // Add bill_id at the end for WHERE clause
+            values.push(bill_id);
+            
+            const updateQuery = `
+                UPDATE BILL_RECORD 
+                SET ${updates.join(', ')}
+                WHERE bill_id = ?
+            `;
+            
+            db.query(updateQuery, values, (err, result) => {
+                if (err) {
+                    console.error("Error updating bill:", err);
+                    return res.status(500).json({ 
+                        success: false, 
+                        error: "Error updating bill" 
+                    });
+                }
+                
+                res.json({ 
+                    success: true,
+                    message: "Bill updated successfully", 
+                    result: result 
+                });
+            });
+        }
+    );
+});
+
+app.delete('/deleteBill', (req, res) => {
+    const { bill_id } = req.body;
+    
+    if (!bill_id) {
+        return res.status(400).json({ 
+            success: false, 
+            error: "bill_id is required" 
+        });
+    }
+
+    // First check if the bill exists
+    db.query(
+        "SELECT * FROM BILL_RECORD WHERE bill_id = ?",
+        [bill_id],
+        (err, results) => {
+            if (err) {
+                console.error("MySQL Error:", err);
+                return res.status(500).json({ 
+                    success: false, 
+                    error: "Database error" 
+                });
+            }
+            
+            if (results.length === 0) {
+                return res.status(404).json({ 
+                    success: false, 
+                    error: "Bill not found" 
+                });
+            }
+            
+            // Before deleting the bill, delete related records
+            db.beginTransaction(err => {
+                if (err) {
+                    console.error("Error starting transaction:", err);
+                    return res.status(500).json({ 
+                        success: false, 
+                        error: "Database error" 
+                    });
+                }
+                
+                // Delete split records first
+                db.query(
+                    "DELETE FROM SPLIT_RECORD WHERE bill_id = ?",
+                    [bill_id],
+                    (err) => {
+                        if (err) {
+                            return db.rollback(() => {
+                                console.error("Error deleting split records:", err);
+                                res.status(500).json({ 
+                                    success: false, 
+                                    error: "Error deleting split records" 
+                                });
+                            });
+                        }
+                        
+                        // Delete item details
+                        db.query(
+                            "DELETE FROM ITEM_DETAIL WHERE bill_id = ?",
+                            [bill_id],
+                            (err) => {
+                                if (err) {
+                                    return db.rollback(() => {
+                                        console.error("Error deleting item details:", err);
+                                        res.status(500).json({ 
+                                            success: false, 
+                                            error: "Error deleting item details" 
+                                        });
+                                    });
+                                }
+                                
+                                // Finally delete the bill
+                                db.query(
+                                    "DELETE FROM BILL_RECORD WHERE bill_id = ?",
+                                    [bill_id],
+                                    (err, result) => {
+                                        if (err) {
+                                            return db.rollback(() => {
+                                                console.error("Error deleting bill:", err);
+                                                res.status(500).json({ 
+                                                    success: false, 
+                                                    error: "Error deleting bill" 
+                                                });
+                                            });
+                                        }
+                                        
+                                        db.commit(err => {
+                                            if (err) {
+                                                return db.rollback(() => {
+                                                    console.error("Error committing transaction:", err);
+                                                    res.status(500).json({ 
+                                                        success: false, 
+                                                        error: "Error committing transaction" 
+                                                    });
+                                                });
+                                            }
+                                            
+                                            res.json({ 
+                                                success: true,
+                                                message: "Bill and related records deleted successfully", 
+                                                result: result 
+                                            });
+                                        });
+                                    }
+                                );
+                            }
+                        );
+                    }
+                );
+            });
+        }
+    );
+});
+
 app.get('/getUsersByGroupId', (req, res) => {
     const group_id = req.query.group_id;
 
@@ -248,7 +999,6 @@ app.get('/getUsersByGroupId', (req, res) => {
     );
 });
 
-// Add this endpoint to calculate total amounts for users in a group using pure SQL
 app.get('/getGroupTotals', (req, res) => {
     const { group_id } = req.query;
 
@@ -424,7 +1174,7 @@ app.get('/getGroupTotals', (req, res) => {
         });
     });
 });
-// Update the createItem endpoint to handle multiple items
+
 app.post('/createItem', async (req, res) => {
     const { bill_id, items } = req.body;
 
@@ -470,9 +1220,153 @@ app.post('/createItem', async (req, res) => {
     }
 });
 
-// Add these endpoints to your existing Express server
+app.put('/updateItem', async (req, res) => {
+    const { bill_id, items } = req.body;
+    
+    if (!bill_id || !Array.isArray(items)) {
+        return res.status(400).json({
+            success: false,
+            message: "Bill ID and items array are required"
+        });
+    }
+    
+    try {
+        // First check if the bill exists
+        const billExists = await new Promise((resolve, reject) => {
+            db.query(
+                "SELECT bill_id FROM BILL_RECORD WHERE bill_id = ?",
+                [bill_id],
+                (err, results) => {
+                    if (err) reject(err);
+                    else resolve(results.length > 0);
+                }
+            );
+        });
+        
+        if (!billExists) {
+            return res.status(404).json({
+                success: false,
+                message: "Bill not found"
+            });
+        }
+        
+        // Begin transaction for data consistency
+        await new Promise((resolve, reject) => {
+            db.beginTransaction(err => err ? reject(err) : resolve());
+        });
+        
+        try {
+            // Get existing items to determine which need updating vs inserting
+            const existingItems = await new Promise((resolve, reject) => {
+                db.query(
+                    "SELECT * FROM ITEM_DETAIL WHERE bill_id = ?",
+                    [bill_id],
+                    (err, results) => err ? reject(err) : resolve(results)
+                );
+            });
+            
+            const existingItemIds = existingItems.map(item => item.item_id);
+            
+            // Process each item: update existing ones, add new ones
+            for (const item of items) {
+                if (item.item_id && existingItemIds.includes(item.item_id)) {
+                    // Update existing item
+                    await new Promise((resolve, reject) => {
+                        db.query(
+                            "UPDATE ITEM_DETAIL SET item_amount = ?, user_id = ?, item_name = ? WHERE item_id = ?",
+                            [item.item_amount, item.user_id, item.item_name, item.item_id],
+                            (err) => err ? reject(err) : resolve()
+                        );
+                    });
+                } else {
+                    // Insert new item
+                    await new Promise((resolve, reject) => {
+                        db.query(
+                            "INSERT INTO ITEM_DETAIL (item_amount, bill_id, user_id, item_name) VALUES (?, ?, ?, ?)",
+                            [item.item_amount, bill_id, item.user_id, item.item_name],
+                            (err) => err ? reject(err) : resolve()
+                        );
+                    });
+                }
+            }
+            
+            // Delete items that are no longer in the updated list
+            const updatedItemIds = items
+                .filter(item => item.item_id)
+                .map(item => item.item_id);
+            
+            const itemsToDelete = existingItemIds.filter(id => !updatedItemIds.includes(id));
+            
+            if (itemsToDelete.length > 0) {
+                await new Promise((resolve, reject) => {
+                    db.query(
+                        "DELETE FROM ITEM_DETAIL WHERE item_id IN (?)",
+                        [itemsToDelete],
+                        (err) => err ? reject(err) : resolve()
+                    );
+                });
+            }
+            
+            // Commit the transaction
+            await new Promise((resolve, reject) => {
+                db.commit(err => err ? reject(err) : resolve());
+            });
+            
+            res.json({
+                success: true,
+                message: "Items updated successfully"
+            });
+            
+        } catch (error) {
+            // Rollback on error
+            await new Promise((resolve) => {
+                db.rollback(() => resolve());
+            });
+            throw error;
+        }
+        
+    } catch (error) {
+        console.error("Error updating items:", error);
+        res.status(500).json({
+            success: false,
+            message: "Error updating items"
+        });
+    }
+});
 
-// Endpoint to calculate what each user has advanced (paid)
+app.get('/getItems', (req, res) => {
+    const { bill_id } = req.query;
+
+    if (!bill_id) {
+        return res.status(400).json({ 
+            success: false,
+            error: "Bill ID is required" 
+        });
+    }
+
+    const query = `
+        SELECT id.*, u.user_name
+        FROM ITEM_DETAIL id
+        JOIN USER u ON id.user_id = u.user_id
+        WHERE id.bill_id = ?
+        ORDER BY id.item_id
+    `;
+
+    db.query(query, [bill_id], (err, results) => {
+        if (err) {
+            console.error("Error fetching items:", err);
+            return res.status(500).json({ 
+                success: false,
+                error: "Error fetching items" 
+            });
+        }
+
+        // Return just the array of items without wrapping it in an object
+        // This matches what the frontend expects
+        res.json(results);
+    });
+});
+
 app.get('/total_advance', (req, res) => {
     const { group_id } = req.query;
 
@@ -491,10 +1385,17 @@ app.get('/total_advance', (req, res) => {
                 b.amount,
                 b.user_id AS payer_id,
                 b.method,
-                -- Use fixed rate of 0.22 as requested in the example
-                0.22 AS rate_to_use
+                -- Calculate the rate to use based on credit_card flag
+                CASE 
+                    WHEN b.credit_card = 1 THEN r.spot_rate/10000
+                    ELSE (yr.JPY / yr.NTD)/10000
+                END AS rate_to_use
             FROM 
                 BILL_RECORD b
+            LEFT JOIN 
+                RATE r ON b.rate_id = r.rate_id
+            LEFT JOIN 
+                YOUR_RATE yr ON b.your_rate_id = yr.your_rate_id
             WHERE 
                 b.group_id = ?
         ),
@@ -549,7 +1450,6 @@ app.get('/total_advance', (req, res) => {
     });
 });
 
-// Endpoint to calculate the total cost for each user in a group (what they consumed)
 app.get('/total_cost', (req, res) => {
     const { group_id } = req.query;
 
@@ -566,10 +1466,17 @@ app.get('/total_cost', (req, res) => {
                 b.bill_id,
                 b.amount AS bill_amount,
                 b.method,
-                -- Use fixed rate of 0.22 as requested
-                0.22 AS rate_to_use
+                -- Calculate the rate to use based on credit_card flag
+                CASE 
+                    WHEN b.credit_card = 1 THEN r.spot_rate/10000
+                    ELSE (yr.NTD / yr.JPY)/10000
+                END AS rate_to_use
             FROM 
                 BILL_RECORD b
+            LEFT JOIN 
+                RATE r ON b.rate_id = r.rate_id
+            LEFT JOIN 
+                YOUR_RATE yr ON b.your_rate_id = yr.your_rate_id
             WHERE 
                 b.group_id = ?
         ),
@@ -655,6 +1562,7 @@ app.get('/total_cost', (req, res) => {
         });
     });
 });
+
 app.get('/group_balance', (req, res) => {
     const { group_id } = req.query;
 
@@ -672,10 +1580,17 @@ app.get('/group_balance', (req, res) => {
                 b.amount,
                 b.user_id AS payer_id,
                 b.method,
-                -- Use fixed rate of 0.22 as requested
-                0.22 AS rate_to_use
+                -- Calculate the rate to use based on credit_card flag
+                CASE 
+                    WHEN b.credit_card = 1 THEN r.spot_rate/10000
+                    ELSE (yr.NTD / yr.JPY)/10000
+                END AS rate_to_use
             FROM 
                 BILL_RECORD b
+            LEFT JOIN 
+                RATE r ON b.rate_id = r.rate_id
+            LEFT JOIN 
+                YOUR_RATE yr ON b.your_rate_id = yr.your_rate_id
             WHERE 
                 b.group_id = ?
         ),
@@ -889,7 +1804,6 @@ app.post('/createSplitRecord', (req, res) => {
     }
 });
 
-// 查詢特定帳單的分帳比例
 app.get('/getSplitRecord', (req, res) => {
     const { bill_id } = req.query;
 
@@ -911,6 +1825,159 @@ app.get('/getSplitRecord', (req, res) => {
             }
         }
     );
+});
+
+// Update the endpoint name to match what the frontend expects (plural 'getSplitRecords')
+app.get('/getSplitRecords', (req, res) => {
+    const { bill_id } = req.query;
+
+    if (!bill_id) {
+        return res.status(400).json({ 
+            success: false,
+            error: "Bill ID is required" 
+        });
+    }
+
+    db.query(
+        `SELECT sr.*, u.user_name 
+         FROM SPLIT_RECORD sr 
+         JOIN USER u ON sr.user_id = u.user_id 
+         WHERE sr.bill_id = ?`,
+        [bill_id],
+        (err, results) => {
+            if (err) {
+                console.error("Error fetching split records:", err);
+                return res.status(500).json({ 
+                    success: false,
+                    error: "Error fetching split records" 
+                });
+            }
+            
+            // Return the results directly to match frontend expectations
+            res.json(results);
+        }
+    );
+});
+
+// Add the PUT endpoint for updateSplitRecord
+app.put('/updateSplitRecord', (req, res) => {
+    const { bill_id, percentages } = req.body;
+
+    if (!bill_id || !percentages || Object.keys(percentages).length === 0) {
+        return res.status(400).json({ 
+            success: false,
+            message: "Bill ID and percentages are required" 
+        });
+    }
+
+    try {
+        let totalPercentage = 0;
+
+        // First pass: validate and sum percentages
+        for (const [userId, percentage] of Object.entries(percentages)) {
+            const parsedValue = parseInt(percentage, 10);
+            
+            if (isNaN(parsedValue) || parsedValue < 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Invalid percentage value for user ${userId}`
+                });
+            }
+
+            totalPercentage += parsedValue;
+        }
+
+        // Check if total equals 100% (10000 basis points)
+        if (totalPercentage !== 10000) {
+            console.error(`Total percentage is not 100%: ${totalPercentage/100}%`);
+            return res.status(400).json({ 
+                success: false,
+                message: `Total percentage must be 100%, current total is: ${totalPercentage/100}%` 
+            });
+        }
+
+        // Begin transaction
+        db.beginTransaction(err => {
+            if (err) {
+                console.error("Error starting transaction:", err);
+                return res.status(500).json({ 
+                    success: false,
+                    message: "Database error" 
+                });
+            }
+
+            // Delete existing records
+            db.query(
+                "DELETE FROM SPLIT_RECORD WHERE bill_id = ?",
+                [bill_id],
+                async (deleteErr) => {
+                    if (deleteErr) {
+                        return db.rollback(() => {
+                            console.error("Error deleting old records:", deleteErr);
+                            res.status(500).json({ 
+                                success: false,
+                                message: "Error deleting old records" 
+                            });
+                        });
+                    }
+
+                    try {
+                        // Insert new records with the updated percentages
+                        for (const [user_id, percentage] of Object.entries(percentages)) {
+                            await new Promise((resolve, reject) => {
+                                db.query(
+                                    "INSERT INTO SPLIT_RECORD (bill_id, user_id, percentage) VALUES (?, ?, ?)",
+                                    [bill_id, parseInt(user_id), parseInt(percentage)],
+                                    (err, result) => {
+                                        if (err) reject(err);
+                                        else resolve(result);
+                                    }
+                                );
+                            });
+                        }
+
+                        // Commit the transaction
+                        db.commit(err => {
+                            if (err) {
+                                return db.rollback(() => {
+                                    console.error("Error committing transaction:", err);
+                                    res.status(500).json({ 
+                                        success: false,
+                                        message: "Error updating split records" 
+                                    });
+                                });
+                            }
+
+                            res.json({
+                                success: true,
+                                message: "Split records updated successfully",
+                                splitDetails: Object.entries(percentages).map(([user_id, percentage]) => ({
+                                    user_id,
+                                    percentage: parseInt(percentage)
+                                }))
+                            });
+                        });
+
+                    } catch (insertError) {
+                        return db.rollback(() => {
+                            console.error("Error inserting records:", insertError);
+                            res.status(500).json({ 
+                                success: false,
+                                message: "Error updating split records" 
+                            });
+                        });
+                    }
+                }
+            );
+        });
+
+    } catch (error) {
+        console.error("Error processing request:", error);
+        res.status(500).json({ 
+            success: false,
+            message: "Error processing request" 
+        });
+    }
 });
 
 app.listen(3002, () => {
