@@ -68,7 +68,7 @@ const ShowYourRate = () => {
                                 <li key={index} className="rate-item">
                                     <span className="user-name">{rate.user_name}</span>
                                     <span className="rate-values">
-                                        JPY: {rate.JPY} | NTD: {rate.NTD} Rate: {rate.JPY / rate.NTD/100}
+                                        JPY: {rate.JPY} | NTD: {rate.NTD} Rate: {rate.JPY / rate.NTD}
                                     </span>
                                 </li>
                             ))}
