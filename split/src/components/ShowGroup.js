@@ -173,24 +173,37 @@ const ShowGroup = ({ onGroupSelect }) => {
                             ))}
                         </ul>
                         <div className="navigation-buttons" style={{ position: 'relative', display: 'flex', justifyContent: 'center', marginTop: '-35px' }}>
-                            <button 
-                                className="arrow-button left" 
-                                onClick={scrollLeft}
-                                style={{ position: 'static', margin: '0 10px' }}
-                            >
-                                <svg viewBox="0 0 24 24">
-                                    <path d="M15 18l-6-6 6-6" stroke="#ffffff" strokeWidth="2.5" fill="none" />
                                 </svg>
-                            </button>
-                            <button 
-                                className="arrow-button right" 
-                                onClick={scrollRight}
-                                style={{ position: 'static', margin: '0 10px' }}
+                        <button
+                            className="arrow-button left"
+                            onClick={scrollLeft}
+                            style={{ 
+                                position: 'static', 
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                marginRight: '10px',
+                            }}
+                        >
+                            <svg viewBox="0 0 24 24">
+                                <path d="M14 18l-6-6 6-6" stroke="var(--apple-gray)" strokeWidth="2.5" stroke-linecap='round' fill="none" />
+                            </svg>
+                        </button>
+                            <button
+                            className="arrow-button right"
+                            onClick={scrollRight}
+                            style={{ 
+                                position: 'static', 
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                marginLeft: '10px'
+                            }}
                             >
-                                <svg viewBox="0 0 24 24">
-                                    <path d="M9 6l6 6-6 6" stroke="#ffffff" strokeWidth="2.5" fill="none" />
-                                </svg>
-                            </button>
+                            <svg viewBox="0 0 24 24">
+                                <path d="M10 6l6 6-6 6" stroke="var(--apple-gray)" strokeWidth="2.5" stroke-linecap='round' fill="none" />
+                            </svg>
+                        </button>
                         </div>
                     </div>
                 </div>

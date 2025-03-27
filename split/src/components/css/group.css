@@ -132,13 +132,12 @@
   width: 36px !important;
   height: 36px !important;
   border-radius: 50%;
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: none;
   cursor: pointer;
   transition: var(--apple-transition);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   bottom: 0px;
 }
 

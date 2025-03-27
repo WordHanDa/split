@@ -222,7 +222,6 @@
     opacity: 0.7;
   }
   
-  /* Button styles */
   .update-button,
   .delete-button,
   .remove-button,
@@ -242,39 +241,68 @@
     height: 33px;
     min-width: 60px;
   }
-  
-  /* Primary button (blue) */
-  .update-button{
-    background-color: var(--apple-blue);
-  }
-  .add-bill-button,
-  .update-button,
-  .show-group-button,
-  button:not(.delete-button):not(.remove-button):not(nav button) {
-    color: var(--apple-white);
-  }
-  
-  .add-bill-button:hover,
-  .update-button:hover,
-  .show-group-button:hover,
-  button:not(.delete-button):not(.remove-button):not(nav button):hover:not(:disabled) {
-    background-color: var(--apple-blue-hover);
-  }
-  
+
+/* Update button - outlined style */
+.update-button {
+  background-color: var(--apple-white);
+  border: 1px solid var(--apple-blue);
+  color: var(--apple-blue);
+}
+
+.update-button:hover:not(:disabled) {
+  background-color: var(--apple-blue);
+  color: var(--apple-white);
+}
+
+/* Update button disabled state - specific styling */
+.update-button:disabled {
+  background-color: var(--apple-gray);
+  color: var(--apple-white);
+  border: none;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Explicitly set these buttons to filled style */
+.add-bill-button,
+.show-group-button {
+  background-color: var(--apple-blue);
+  color: var(--apple-white);
+  border: none;
+}
+
+.add-bill-button:hover:not(:disabled),
+.show-group-button:hover:not(:disabled) {
+  background-color: var(--apple-blue-hover);
+}
+
+/* Danger button (red) */
+.delete-button,
+.remove-button {
+  background-color: var(--apple-red);
+  color: var(--apple-white);
+  border: none;
+}
+
+.delete-button:hover:not(:disabled),
+.remove-button:hover:not(:disabled) {
+  background-color: var(--apple-red-hover);
+}
+
   /* Success button */
-  .add-button {
-    background-color: var(--apple-blue);
-    color: var(--apple-white);
-    font-size: 14px;
-    font-weight: 500;
-    padding: 0 20px;
-    border-radius: 33px;
-    border: none;
-    height: 33px;
-    min-width: 60px;
-    cursor: pointer;
-    transition: var(--apple-transition);
-  }
+.add-button {
+  background-color: var(--apple-blue);
+  color: var(--apple-white);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 0 20px;
+  border-radius: 33px;
+  border: none;
+  height: 33px;
+  min-width: 60px;
+  cursor: pointer;
+  transition: var(--apple-transition);
+}
   
   .add-button:hover:not(:disabled) {
     background-color: var(--apple-blue-hover);
@@ -293,7 +321,6 @@
   }
   
   /* Disabled buttons */
-  button:disabled,
   .add-button:disabled,
   .update-button:disabled,
   .delete-button:disabled,
