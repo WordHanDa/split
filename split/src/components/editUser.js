@@ -5,9 +5,7 @@ import Cookies from 'js-cookie';
 import 'react-toastify/dist/ReactToastify.css';
 import './css/user.css';
 
-const hostname = "http://macbook-pro.local:3002";
-
-const EditUser = () => {
+const EditUser = ({hostname}) => {
     const [users, setUsers] = useState([]);
     const [selectedUser, setSelectedUser] = useState('');
     const [newName, setNewName] = useState('');

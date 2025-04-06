@@ -3,7 +3,7 @@ import ShowUser from '../components/ShowUser';
 import AddUser from '../components/AddUser';
 import EditUser from '../components/EditUser';
 
-const UserPage = () => {
+const UserPage = ({hostname}) => {
     return (
         <div className="page-container">
             <h1>User Management</h1>
@@ -11,7 +11,7 @@ const UserPage = () => {
             <div className="component-section">
                 <h3>User Directory</h3>
                 <div className="user-page-section">
-                    <ShowUser />
+                    <ShowUser hostname={hostname}/>
                 </div>
             </div>
             
@@ -19,14 +19,14 @@ const UserPage = () => {
                 <div className="component-section">
                     <h3>Add User</h3>
                     <div className="user-page-section">
-                        <AddUser />
+                        <AddUser hostname={hostname}/>
                     </div>
                 </div>
                 
                 <div className="component-section">
                     <h3>Edit User</h3>
                     <div className="user-page-section">
-                        <EditUser />
+                        <EditUser hostname={hostname}/>
                     </div>
                 </div>
             </div>

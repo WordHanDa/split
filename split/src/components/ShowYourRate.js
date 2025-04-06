@@ -4,9 +4,7 @@ import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
 import './css/rate.css';
 
-let hostname = "http://macbook-pro.local:3002";
-
-const ShowYourRate = () => {
+const ShowYourRate = ({hostname}) => {
     const [rateList, setRateList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [groupId, setGroupId] = useState(null);

@@ -1,24 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Axios from "axios";
 import { ToastContainer, toast } from 'react-toastify';
 import Cookies from 'js-cookie';
 import 'react-toastify/dist/ReactToastify.css';
 import './css/group.css';
 
-const hostname = "http://macbook-pro.local:3002";
-
-const EditGroup = () => {
+const EditGroup = ({hostname}) => {
     const [groups, setGroups] = useState([]);
     const [selectedGroup, setSelectedGroup] = useState('');
     const [newName, setNewName] = useState('');
     const [loading, setLoading] = useState(false);
 
-    // Load groups on mount
-    useEffect(() => {
-        fetchGroups();
-    }, []);
-
-    const fetchGroups = async () => {
+    // 將 fetchGroups 改為使用 useCallback
+    const fetchGroups = useCallback(async () => {
         try {
             const response = await Axios.get(`${hostname}/GROUP`);
             setGroups(response.data);
@@ -26,7 +20,12 @@ const EditGroup = () => {
             console.error("Error fetching groups:", error);
             toast.error("無法取得群組列表");
         }
-    };
+    }, [hostname]); // 加入 hostname 作為依賴
+
+    // 更新 useEffect 的依賴
+    useEffect(() => {
+        fetchGroups();
+    }, [fetchGroups]); // 使用 fetchGroups 作為依賴
 
     const handleGroupSelect = (groupId) => {
         setSelectedGroup(groupId);

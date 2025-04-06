@@ -1,19 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Cookies from 'js-cookie';
 import './css/rate.css';
 
-let hostname = "http://macbook-pro.local:3002";
-
-const AddRate = () => {
+const AddRate = ({hostname}) => {
     const [JPY, setJPY] = useState("");
     const [NTD, setNTD] = useState("");
     const [rate, setRate] = useState(null);
     const [users, setUsers] = useState([]);
     const [userId, setUserId] = useState("");
     const [groupId, setGroupId] = useState(null);
+
+    // 將獲取用戶的邏輯封裝到 useCallback 中
+    const fetchUsers = useCallback(async (groupId) => {
+        try {
+            const response = await Axios.get(`${hostname}/getUsersByGroupId`, {
+                params: { group_id: groupId }
+            });
+            setUsers(response.data);
+        } catch (error) {
+            console.error("Error fetching users:", error);
+            toast.error("無法取得群組成員");
+        }
+    }, [hostname]);
 
     useEffect(() => {
         // Get selected group from cookies
@@ -22,18 +33,7 @@ const AddRate = () => {
             try {
                 const parsedGroup = JSON.parse(savedGroup);
                 setGroupId(parsedGroup.group_id);
-
-                // Fetch users for the selected group
-                Axios.get(`${hostname}/getUsersByGroupId`, {
-                    params: { group_id: parsedGroup.group_id }
-                })
-                .then(response => {
-                    setUsers(response.data);
-                })
-                .catch(error => {
-                    console.error("Error fetching users:", error);
-                    toast.error("無法取得群組成員");
-                });
+                fetchUsers(parsedGroup.group_id);
             } catch (error) {
                 console.error("Error parsing saved group:", error);
                 toast.error("群組資料錯誤");
@@ -41,9 +41,10 @@ const AddRate = () => {
         } else {
             toast.error("請先選擇群組");
         }
-    }, []);
+    }, [fetchUsers]);
 
-    const add = () => {
+    // 也將 add 函數使用 useCallback 包裝
+    const handleAddRate = useCallback(() => {
         if (!JPY.trim() || !NTD.trim() || !userId) {
             toast.error("JPY, NTD rates and user selection cannot be empty");
             return;
@@ -52,27 +53,27 @@ const AddRate = () => {
         const convertedRate = parseFloat(JPY) / parseFloat(NTD);
         setRate(convertedRate);
 
-        Axios.post(hostname + "/createRate", {  
-          JPY,
-          NTD,
-          user_id: parseInt(userId, 10) // 確保 user_id 是一個整數
+        Axios.post(`${hostname}/createRate`, {
+            JPY,
+            NTD,
+            user_id: parseInt(userId, 10)
         }, {
-          headers: {
-            'Content-Type': 'application/json'
-          }
+            headers: {
+                'Content-Type': 'application/json'
+            }
         })
         .then(() => {
-          console.log("Rate added successfully");
-          setJPY("");  // Clear input after submission
-          setNTD("");  // Clear input after submission
-          setUserId("");  // Clear input after submission
-          toast.success("Rate added successfully!");  // Show success notification
+            console.log("Rate added successfully");
+            setJPY("");
+            setNTD("");
+            setUserId("");
+            toast.success("Rate added successfully!");
         })
         .catch((error) => {
-          console.error("Error adding rate:", error);
-          toast.error("Error adding rate");  // Show error notification
+            console.error("Error adding rate:", error);
+            toast.error("Error adding rate");
         });
-    };
+    }, [hostname, JPY, NTD, userId]);
 
     return (
         <div className="add-rate-container">
@@ -101,7 +102,7 @@ const AddRate = () => {
                             </option>
                         ))}
                     </select>
-                    <button className='add-button' onClick={add}>ADD</button>
+                    <button className='add-button' onClick={handleAddRate}>ADD</button>
                     {rate !== null && <p>Converted Rate: {rate}</p>}
                 </>
             ) : (

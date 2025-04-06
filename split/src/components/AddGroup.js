@@ -4,9 +4,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './css/group.css';
 
-let hostname = "http://macbook-pro.local:3002";
-
-const AddGroup = () => {
+const AddGroup = ({hostname}) => {
     const [groupName, setGroupName] = useState("");
 
     const add = () => {

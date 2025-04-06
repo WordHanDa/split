@@ -1,14 +1,12 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import Axios from "axios";
 import Cookies from "js-cookie";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './css/bill.css';
 
-const hostname = "http://macbook-pro.local:3002";
-
 // Modify the component definition to accept billAmount prop
-const EditItem = ({ billId, billAmount, onUpdate, onBillUpdate }) => {
+const EditItem = ({ hostname, billId, billAmount, onUpdate, onBillUpdate }) => {
     const [items, setItems] = useState([{
         item_amount: "",
         user_id: "",
@@ -17,25 +15,15 @@ const EditItem = ({ billId, billAmount, onUpdate, onBillUpdate }) => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        const savedGroup = Cookies.get('selectedGroup');
-        if (savedGroup) {
-            try {
-                const parsedGroup = JSON.parse(savedGroup);
-                fetchUsers(parsedGroup.group_id);
-                if (billId) {
-                    fetchItems(billId);
-                }
-            } catch (error) {
-                console.error("Error parsing saved group:", error);
-                toast.error("群組資料載入失敗");
-            }
-        }
-    }, [billId]);
+    const apiUrls = useMemo(() => ({
+        users: `${hostname}/getUsersByGroupId`,
+        items: `${hostname}/getItems`,
+        updateItem: `${hostname}/updateItem`
+    }), [hostname]);
 
-    const fetchUsers = async (gid) => {
+    const fetchUsers = useCallback(async (gid) => {
         try {
-            const response = await Axios.get(`${hostname}/getUsersByGroupId`, {
+            const response = await Axios.get(apiUrls.users, {
                 params: { group_id: gid }
             });
             setUsers(response.data);
@@ -43,12 +31,12 @@ const EditItem = ({ billId, billAmount, onUpdate, onBillUpdate }) => {
             console.error("Error fetching users:", error);
             toast.error("無法取得使用者列表");
         }
-    };
+    }, [apiUrls]);
 
-    const fetchItems = async (bid) => {
+    const fetchItems = useCallback(async (bid) => {
         try {
             setLoading(true);
-            const response = await Axios.get(`${hostname}/getItems`, {
+            const response = await Axios.get(apiUrls.items, {
                 params: { bill_id: bid }
             });
             
@@ -73,7 +61,23 @@ const EditItem = ({ billId, billAmount, onUpdate, onBillUpdate }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [apiUrls]);
+
+    useEffect(() => {
+        const savedGroup = Cookies.get('selectedGroup');
+        if (savedGroup) {
+            try {
+                const parsedGroup = JSON.parse(savedGroup);
+                fetchUsers(parsedGroup.group_id);
+                if (billId) {
+                    fetchItems(billId);
+                }
+            } catch (error) {
+                console.error("Error parsing saved group:", error);
+                toast.error("群組資料載入失敗");
+            }
+        }
+    }, [billId, fetchUsers, fetchItems]);
 
     const handleItemChange = (index, field, value) => {
         const newItems = [...items];
@@ -133,7 +137,7 @@ const EditItem = ({ billId, billAmount, onUpdate, onBillUpdate }) => {
             await onBillUpdate();
             
             // Then update the items
-            const response = await Axios.put(`${hostname}/updateItem`, {
+            const response = await Axios.put(apiUrls.updateItem, {
                 bill_id: billId,
                 items: items.map(item => ({
                     ...item,

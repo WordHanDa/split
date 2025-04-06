@@ -2,9 +2,7 @@ import { useState } from "react";
 import Axios from "axios";
 import './css/user.css';
 
-let hostname = "http://macbook-pro.local:3002";
-
-const ShowUser = () => {  // ✅ Ensure the function starts with an uppercase letter
+const ShowUser = ({hostname}) => {  // ✅ Ensure the function starts with an uppercase letter
     const [userList, setUserList] = useState([]);
 
     const getUser = () => {

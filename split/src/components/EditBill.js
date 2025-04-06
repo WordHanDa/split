@@ -1,4 +1,4 @@
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Axios from "axios";
 import Cookies from 'js-cookie';
 import { ToastContainer, toast } from 'react-toastify';
@@ -7,9 +7,7 @@ import EditItem from './EditItem';
 import EditSplit from './EditSplit';   
 import './css/bill.css';
 
-const hostname = "http://macbook-pro.local:3002";
-
-const EditBill = () => {
+const EditBill = ({hostname}) => {
     const [bills, setBills] = useState([]);
     const [selectedBill, setSelectedBill] = useState('');
     const [billDetails, setBillDetails] = useState({
@@ -22,6 +20,23 @@ const EditBill = () => {
     const [loading, setLoading] = useState(false);
     const [groupId, setGroupId] = useState(null);
 
+    // 使用 useCallback 記憶化 fetchBills 函數
+    const fetchBills = useCallback(async (gid) => {
+        try {
+            setLoading(true);
+            const response = await Axios.get(`${hostname}/getBillsByGroupId`, {
+                params: { group_id: gid }
+            });
+            setBills(response.data);
+        } catch (error) {
+            console.error("Error fetching bills:", error);
+            toast.error("無法取得帳單列表");
+        } finally {
+            setLoading(false);
+        }
+    }, [hostname]); // 加入 hostname 作為依賴
+
+    // 更新 useEffect 的依賴
     useEffect(() => {
         const savedGroup = Cookies.get('selectedGroup');
         if (savedGroup) {
@@ -36,21 +51,7 @@ const EditBill = () => {
         } else {
             toast.error("請先選擇群組");
         }
-    }, []);
-    const fetchBills = async (gid) => {
-        try {
-            setLoading(true);
-            const response = await Axios.get(`${hostname}/getBillsByGroupId`, {
-                params: { group_id: gid }
-            });
-            setBills(response.data);
-        } catch (error) {
-            console.error("Error fetching bills:", error);
-            toast.error("無法取得帳單列表");
-        } finally {
-            setLoading(false);
-        }
-    };
+    }, [fetchBills]); // 使用 fetchBills 作為依賴
 
     const handleBillSelect = async (billId) => {
         if (!billId) {
@@ -150,7 +151,8 @@ const EditBill = () => {
         }
     };
 
-    const fetchBillDetails = async () => {
+    // 使用 useCallback 記憶化 fetchBillDetails
+    const fetchBillDetails = useCallback(async () => {
         if (!selectedBill) return;
         
         try {
@@ -172,7 +174,7 @@ const EditBill = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [hostname, selectedBill]);
 
     return (
         <div className="edit-bill-container">

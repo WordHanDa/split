@@ -3,9 +3,7 @@ import Axios from "axios";
 import Cookies from 'js-cookie';
 import './css/result.css';
 
-const hostname = "http://macbook-pro.local:3002";
-
-const ShowResult = () => {
+const ShowResult = ({hostname}) => {
     const [balanceData, setBalanceData] = useState({
         userBalances: [],
         groupTotals: { total_advanced: 0, total_cost: 0 }
@@ -46,7 +44,7 @@ const ShowResult = () => {
         };
 
         getGroupBalance();
-    }, []); // Empty dependency array means this effect runs once on mount
+    }, [hostname]); // Empty dependency array means this effect runs once on mount
 
     if (loading) {
         return <div className="loading">Loading balance data...</div>;

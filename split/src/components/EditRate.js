@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import Cookies from 'js-cookie';
 import 'react-toastify/dist/ReactToastify.css';
 import './css/rate.css';
 
-const hostname = "http://macbook-pro.local:3002";
-
-const EditRate = () => {
+const EditRate = ({hostname}) => {
     const [selectedRate, setSelectedRate] = useState(null);
     const [JPY, setJPY] = useState("");
     const [NTD, setNTD] = useState("");
@@ -17,25 +15,17 @@ const EditRate = () => {
     const [loading, setLoading] = useState(false);
     const [userRates, setUserRates] = useState([]);
 
-    useEffect(() => {
-        const savedGroup = Cookies.get('selectedGroup');
-        if (savedGroup) {
-            try {
-                const parsedGroup = JSON.parse(savedGroup);
-                setGroupId(parsedGroup.group_id);
-                fetchUsers(parsedGroup.group_id);
-            } catch (error) {
-                console.error("Error parsing saved group:", error);
-                toast.error("群組資料載入失敗");
-            }
-        } else {
-            toast.error("請先選擇群組");
-        }
-    }, []);
+    // 記憶化 API URLs
+    const apiUrls = useMemo(() => ({
+        users: `${hostname}/getUsersByGroupId`,
+        userRates: `${hostname}/YOUR_RATE/user`,
+        updateRate: `${hostname}/updateRate`
+    }), [hostname]);
 
-    const fetchUsers = async (gid) => {
+    // 使用 useCallback 記憶化 fetchUsers
+    const fetchUsers = useCallback(async (gid) => {
         try {
-            const response = await Axios.get(`${hostname}/getUsersByGroupId`, {
+            const response = await Axios.get(apiUrls.users, {
                 params: { group_id: gid }
             });
             setUsers(response.data);
@@ -43,17 +33,18 @@ const EditRate = () => {
             console.error("Error fetching users:", error);
             toast.error("無法取得使用者列表");
         }
-    };
+    }, [apiUrls]);
 
-    const fetchUserRates = async (uid) => {
+    // 使用 useCallback 記憶化 fetchUserRates
+    const fetchUserRates = useCallback(async (uid) => {
         try {
             setLoading(true);
-            const response = await Axios.get(`${hostname}/YOUR_RATE/user`, {
+            const response = await Axios.get(apiUrls.userRates, {
                 params: { user_id: uid }
             });
             
             if (response.data.success) {
-                if (response.data.rates && response.data.rates.length > 0) {
+                if (response.data.rates?.length > 0) {
                     setUserRates(response.data.rates);
                 } else {
                     setUserRates([]);
@@ -74,7 +65,23 @@ const EditRate = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [apiUrls]);
+
+    useEffect(() => {
+        const savedGroup = Cookies.get('selectedGroup');
+        if (savedGroup) {
+            try {
+                const parsedGroup = JSON.parse(savedGroup);
+                setGroupId(parsedGroup.group_id);
+                fetchUsers(parsedGroup.group_id);
+            } catch (error) {
+                console.error("Error parsing saved group:", error);
+                toast.error("群組資料載入失敗");
+            }
+        } else {
+            toast.error("請先選擇群組");
+        }
+    }, [fetchUsers]);
 
     const handleUserSelect = (uid) => {
         setUserId(uid);
@@ -118,7 +125,7 @@ const EditRate = () => {
 
         setLoading(true);
         try {
-            const response = await Axios.put(`${hostname}/updateRate`, {
+            const response = await Axios.put(apiUrls.updateRate, {
                 id: selectedRate.your_rate_id,
                 JPY: parseFloat(JPY),
                 NTD: parseFloat(NTD),

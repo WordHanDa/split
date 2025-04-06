@@ -10,6 +10,9 @@ import GroupUserPage from './pages/groupUserPage';
 import Cookies from 'js-cookie';
 import './mobile-menu.css';
 import './components/css/common.css';
+
+const hostname = "http://localhost:3002";
+
 const App = () => {
     const [selectedGroup, setSelectedGroup] = useState(null);
     const [menuOpen, setMenuOpen] = useState(false);
@@ -99,13 +102,13 @@ const App = () => {
                 
                 <div className="main-content">
                     <Routes>
-                        <Route path="/group" element={<GroupPage onGroupSelect={handleGroupSelect}/>} />
-                        <Route path="/groupUser" element={<GroupUserPage />} />
-                        <Route path="/user" element={<UserPage />} />
-                        <Route path="/rate" element={<RatePage />} />
-                        <Route path="/bill" element={<BillPage />} />
-                        <Route path="/result" element={<ResultPage />} />
-                        <Route path="/" element={<GroupPage onGroupSelect={handleGroupSelect}/>} />
+                        <Route path="/group" element={<GroupPage hostname={hostname} onGroupSelect={handleGroupSelect} />} />
+                        <Route path="/groupUser" element={<GroupUserPage hostname={hostname}/>} />
+                        <Route path="/user" element={<UserPage hostname={hostname}/>} />
+                        <Route path="/rate" element={<RatePage hostname={hostname}/>} />
+                        <Route path="/bill" element={<BillPage hostname={hostname}/>} />
+                        <Route path="/result" element={<ResultPage hostname={hostname}/>} />
+                        <Route path="/" element={<GroupPage hostname={hostname} onGroupSelect={handleGroupSelect}/>} />
                     </Routes>
                 </div>
             </div>

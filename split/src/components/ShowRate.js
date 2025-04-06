@@ -2,9 +2,7 @@ import { useState, useEffect } from "react";
 import Axios from "axios";
 import './css/rate.css';
 
-let hostname = "http://macbook-pro.local:3002";
-
-const ShowRate = () => {
+const ShowRate = ({hostname}) => {
     const [rateList, setRateList] = useState([]);
     const [loading, setLoading] = useState(true);
 

@@ -2,9 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Axios from 'axios';
 import './css/group.css';
 
-const hostname = "http://macbook-pro.local:3002";
-
-const ShowGroup = ({ onGroupSelect }) => {
+const ShowGroup = ({hostname, onGroupSelect }) => {
     const [groupList, setGroupList] = useState([]);
     const [selectedGroup, setSelectedGroup] = useState(null);
     const [error, setError] = useState("");
