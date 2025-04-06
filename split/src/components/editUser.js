@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import Cookies from 'js-cookie';
@@ -11,6 +11,26 @@ const EditUser = ({hostname}) => {
     const [newName, setNewName] = useState('');
     const [groupId, setGroupId] = useState(null);
     const [loading, setLoading] = useState(false);
+
+    // 記憶化 API URLs
+    const apiUrls = useMemo(() => ({
+        users: `${hostname}/getUsersByGroupId`,
+        updateUser: `${hostname}/updateUser`,
+        deleteUser: `${hostname}/deleteUser`
+    }), [hostname]);
+
+    // 使用 useCallback 記憶化 fetchUsers
+    const fetchUsers = useCallback(async (groupId) => {
+        try {
+            const response = await Axios.get(apiUrls.users, {
+                params: { group_id: groupId }
+            });
+            setUsers(response.data);
+        } catch (error) {
+            console.error("Error fetching users:", error);
+            toast.error("無法取得使用者列表");
+        }
+    }, [apiUrls]);
 
     // Load group ID and users on mount
     useEffect(() => {
@@ -27,19 +47,7 @@ const EditUser = ({hostname}) => {
         } else {
             toast.error("請先選擇群組");
         }
-    }, []);
-
-    const fetchUsers = async (groupId) => {
-        try {
-            const response = await Axios.get(`${hostname}/getUsersByGroupId`, {
-                params: { group_id: groupId }
-            });
-            setUsers(response.data);
-        } catch (error) {
-            console.error("Error fetching users:", error);
-            toast.error("無法取得使用者列表");
-        }
-    };
+    }, [fetchUsers]);
 
     const handleUserSelect = (userId) => {
         setSelectedUser(userId);
@@ -62,7 +70,7 @@ const EditUser = ({hostname}) => {
 
         setLoading(true);
         try {
-            const response = await Axios.put(`${hostname}/updateUser`, {
+            const response = await Axios.put(apiUrls.updateUser, {
                 user_id: selectedUser,
                 name: newName
             });
@@ -95,7 +103,7 @@ const EditUser = ({hostname}) => {
 
         setLoading(true);
         try {
-            const response = await Axios.delete(`${hostname}/deleteUser`, {
+            const response = await Axios.delete(apiUrls.deleteUser, {
                 data: { user_id: selectedUser }
             });
 

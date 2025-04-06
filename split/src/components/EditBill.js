@@ -270,6 +270,7 @@ const EditBill = ({hostname}) => {
                                 <>
                                     {billDetails.method === '1' ? (
                                         <EditItem 
+                                            hostname={hostname}
                                             billId={selectedBill}
                                             billAmount={billDetails.amount}
                                             onBillUpdate={handleUpdateBill}
@@ -280,6 +281,7 @@ const EditBill = ({hostname}) => {
                                         />
                                     ) : billDetails.method === '2' && (
                                         <EditSplit
+                                            hostname={hostname}
                                             billId={selectedBill}
                                             groupId={groupId}
                                             onBillUpdate={handleUpdateBill}

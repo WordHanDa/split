@@ -420,6 +420,7 @@ const AddBill = ({hostname}) => {
             {/* Conditional rendering of AddSplit component */}
             {showSplit && (
                 <AddSplit 
+                    hostname={apiBaseUrl}
                     groupId={groupId}
                     users={users}
                     onSplitComplete={(validateFn) => {
@@ -431,6 +432,7 @@ const AddBill = ({hostname}) => {
             {/* Conditional rendering of AddItem component */}
             {billData.method === 1 && (
                 <AddItem 
+                    hostname={apiBaseUrl}
                     onItemComplete={(validateFn) => {
                         if (getItemData !== validateFn) {
                             setGetItemData(() => validateFn);
