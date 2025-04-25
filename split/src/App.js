@@ -11,7 +11,7 @@ import Cookies from 'js-cookie';
 import './mobile-menu.css';
 import './components/css/common.css';
 
-const hostname = "http://114.32.141.80:3002";
+const hostname = "https://114.32.141.80:3002";
 
 const App = () => {
     const [selectedGroup, setSelectedGroup] = useState(null);
