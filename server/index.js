@@ -21,6 +21,7 @@ var options;
 // Try to load SSL certificates if available
 try {
     options = {
+        key: fs.readFileSync('/Users/macbookpro/key.pem'),
         cert: fs.readFileSync('/Users/macbookpro/cert.pem')
     };
     console.log('SSL certificates loaded successfully. HTTPS mode enabled.');
