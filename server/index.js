@@ -20,12 +20,10 @@ var options;
 
 // Try to load SSL certificates if available
 try {
-  options = {
-    key: fs.readFileSync('./server-key.pem'),
-    ca: [fs.readFileSync('./cert.pem')],
-    cert: fs.readFileSync('./server-cert.pem')
-  };
-  console.log('SSL certificates loaded successfully. HTTPS mode enabled.');
+    options = {
+        cert: fs.readFileSync('/Users/macbookpro/cert.pem')
+    };
+    console.log('SSL certificates loaded successfully. HTTPS mode enabled.');
 } catch (err) {
   console.log('SSL certificates not found or not accessible:', err.message);
   console.log('Starting in HTTP mode instead...');
@@ -1997,7 +1995,7 @@ app.put('/updateSplitRecord', (req, res) => {
     }
 });
 // Replace the current server startup code
-if (options) {
+if (!options) {
     // Start HTTPS server if certificates are available
     const server = https.createServer(options, app);
     server.listen(3002, '0.0.0.0', () => {
