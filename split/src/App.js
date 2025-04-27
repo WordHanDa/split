@@ -11,7 +11,7 @@ import Cookies from 'js-cookie';
 import './mobile-menu.css';
 import './components/css/common.css';
 
-const hostname = "https://3159-114-32-141-80.ngrok-free.app/";
+const hostname = "http://localhost:3002";
 
 const App = () => {
     const [selectedGroup, setSelectedGroup] = useState(null);
