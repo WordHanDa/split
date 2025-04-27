@@ -20,7 +20,8 @@ const AddUser = ({hostname, onUserAdded }) => {
                 name: userName,
             }, {
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'skip-browser-warning',
                 }
             });
 

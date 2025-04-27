@@ -17,7 +17,12 @@ const ShowGroup = ({hostname, onGroupSelect }) => {
     // 使用 useCallback 記憶化 fetchGroups
     const fetchGroups = useCallback(async () => {
         try {
-            const response = await Axios.get(apiUrl, { timeout: 5000 });
+            const response = await Axios.get(apiUrl, { 
+                headers: {
+                    'ngrok-skip-browser-warning': 'skip-browser-warning',
+                    // other headers...
+                },
+                timeout: 5000 });
             setGroupList(response.data);
             setError("");
         } catch (error) {

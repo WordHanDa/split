@@ -16,21 +16,24 @@ const EditUser = ({hostname}) => {
     const apiUrls = useMemo(() => ({
         users: `${hostname}/getUsersByGroupId`,
         updateUser: `${hostname}/updateUser`,
-        deleteUser: `${hostname}/deleteUser`
-    }), [hostname]);
-
-    // 使用 useCallback 記憶化 fetchUsers
-    const fetchUsers = useCallback(async (groupId) => {
+        deleteUser: `${hostname}/deleteUser`,
+      }), [hostname]);
+      
+      // 使用 useCallback 記憶化 fetchUsers
+      const fetchUsers = useCallback(async (groupId) => {
         try {
-            const response = await Axios.get(apiUrls.users, {
-                params: { group_id: groupId }
-            });
-            setUsers(response.data);
+          const response = await Axios.get(apiUrls.users, {
+            headers: {
+              'ngrok-skip-browser-warning': 'skip-browser-warning'
+            },
+            params: { group_id: groupId }
+          });
+          setUsers(response.data);
         } catch (error) {
-            console.error("Error fetching users:", error);
-            toast.error("無法取得使用者列表");
+          console.error("Error fetching users:", error);
+          toast.error("無法取得使用者列表");
         }
-    }, [apiUrls]);
+      }, [apiUrls]);
 
     // Load group ID and users on mount
     useEffect(() => {

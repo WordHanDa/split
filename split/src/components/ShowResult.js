@@ -13,38 +13,41 @@ const ShowResult = ({hostname}) => {
 
     useEffect(() => {
         const getGroupBalance = async () => {
-            try {
-                const savedGroup = Cookies.get('selectedGroup');
-                if (!savedGroup) {
-                    throw new Error("No group selected");
-                }
-
-                const parsedGroup = JSON.parse(savedGroup);
-                const groupId = parsedGroup.group_id;
-                
-                const response = await Axios.get(`${hostname}/group_balance`, {
-                    params: { group_id: groupId },
-                    timeout: 5000
-                });
-
-                if (response.data.success) {
-                    setBalanceData(response.data);
-                } else {
-                    throw new Error(response.data.message || "Failed to fetch balance data");
-                }
-            } catch (error) {
-                console.error("Error fetching balance data:", error);
-                const errorMessage = error.message === "No group selected" 
-                    ? "請先選擇群組" 
-                    : "取得資料失敗，請重試";
-                setError(errorMessage);
-            } finally {
-                setLoading(false);
+          try {
+            const savedGroup = Cookies.get('selectedGroup');
+            if (!savedGroup) {
+              throw new Error("No group selected");
             }
+            
+            const parsedGroup = JSON.parse(savedGroup);
+            const groupId = parsedGroup.group_id;
+            
+            const response = await Axios.get(`${hostname}/group_balance`, {
+              params: { group_id: groupId },
+              headers: {
+                'ngrok-skip-browser-warning': 'skip-browser-warning',
+              },
+              timeout: 5000
+            });
+            
+            if (response.data.success) {
+              setBalanceData(response.data);
+            } else {
+              throw new Error(response.data.message || "Failed to fetch balance data");
+            }
+          } catch (error) {
+            console.error("Error fetching balance data:", error);
+            const errorMessage = error.message === "No group selected"
+              ? "請先選擇群組"
+              : "取得資料失敗，請重試";
+            setError(errorMessage);
+          } finally {
+            setLoading(false);
+          }
         };
-
+        
         getGroupBalance();
-    }, [hostname]); // Empty dependency array means this effect runs once on mount
+      }, [hostname]); // hostname is included in the dependency array
 
     if (loading) {
         return <div className="loading">Loading balance data...</div>;

@@ -14,22 +14,25 @@ const EditGroupUser = ({hostname}) => {
     const apiUrl = useMemo(() => ({
         getUsers: `${hostname}/getUsersByGroupId`,
         removeUser: `${hostname}/removeGroupUser`
-    }), [hostname]);
-
-    const fetchGroupUsers = useCallback(async (gid) => {
+      }), [hostname]);
+      
+      const fetchGroupUsers = useCallback(async (gid) => {
         try {
-            setLoading(true);
-            const response = await Axios.get(apiUrl.getUsers, {
-                params: { group_id: gid }
-            });
-            setUsers(response.data);
+          setLoading(true);
+          const response = await Axios.get(apiUrl.getUsers, {
+            headers: {
+              'ngrok-skip-browser-warning': 'skip-browser-warning'
+            },
+            params: { group_id: gid }
+          });
+          setUsers(response.data);
         } catch (error) {
-            console.error("Error fetching group users:", error);
-            toast.error("無法取得群組成員");
+          console.error("Error fetching group users:", error);
+          toast.error("無法取得群組成員");
         } finally {
-            setLoading(false);
+          setLoading(false);
         }
-    }, [apiUrl]);
+      }, [apiUrl]);
 
     useEffect(() => {
         const savedGroup = Cookies.get('selectedGroup');

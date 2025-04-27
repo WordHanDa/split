@@ -6,50 +6,67 @@ import './css/bill.css';
 // 更新 useSplitApi hook
 const useSplitApi = (hostname) => {
     const apiUrls = useMemo(() => ({
-        users: `${hostname}/getUsersByGroupId`,
-        splitRecords: `${hostname}/getSplitRecords`,
-        updateSplit: `${hostname}/updateSplitRecord`
+      users: `${hostname}/getUsersByGroupId`,
+      splitRecords: `${hostname}/getSplitRecords`,
+      updateSplit: `${hostname}/updateSplitRecord`
     }), [hostname]);
-
+  
     const fetchUsers = useCallback(async (groupId) => {
-        try {
-            const response = await Axios.get(apiUrls.users, {
-                params: { group_id: groupId }
-            });
-            return response.data;
-        } catch (error) {
-            console.error("Error fetching users:", error);
-            throw error;
-        }
+      try {
+        const response = await Axios.get(apiUrls.users, {
+          params: { group_id: groupId },
+          headers: {
+            'ngrok-skip-browser-warning': 'skip-browser-warning',
+          },
+          timeout: 5000
+        });
+        return response.data;
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        throw error;
+      }
     }, [apiUrls]);
-
+  
     const fetchSplitRecords = useCallback(async (billId) => {
-        try {
-            const response = await Axios.get(apiUrls.splitRecords, {
-                params: { bill_id: billId }
-            });
-            return response.data;
-        } catch (error) {
-            console.error("Error fetching split records:", error);
-            throw error;
-        }
+      try {
+        const response = await Axios.get(apiUrls.splitRecords, {
+          params: { bill_id: billId },
+          headers: {
+            'ngrok-skip-browser-warning': 'skip-browser-warning',
+          },
+          timeout: 5000
+        });
+        return response.data;
+      } catch (error) {
+        console.error("Error fetching split records:", error);
+        throw error;
+      }
     }, [apiUrls]);
-
+  
     const updateSplitRecord = useCallback(async (billId, percentages) => {
-        try {
-            const response = await Axios.put(apiUrls.updateSplit, {
-                bill_id: billId,
-                percentages
-            });
-            return response.data;
-        } catch (error) {
-            console.error("Error updating split records:", error);
-            throw error;
-        }
+      try {
+        const response = await Axios.put(apiUrls.updateSplit, {
+          bill_id: billId,
+          percentages
+        }, {
+          headers: {
+            'ngrok-skip-browser-warning': 'skip-browser-warning',
+          },
+          timeout: 5000
+        });
+        return response.data;
+      } catch (error) {
+        console.error("Error updating split records:", error);
+        throw error;
+      }
     }, [apiUrls]);
-
-    return { apiUrls, fetchUsers, fetchSplitRecords, updateSplitRecord };
-};
+  
+    return {
+      fetchUsers,
+      fetchSplitRecords,
+      updateSplitRecord
+    };
+  };
 
 // 更新 EditSplit 組件
 const EditSplit = ({ hostname, billId, groupId, onUpdate }) => {

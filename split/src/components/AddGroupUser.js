@@ -15,7 +15,11 @@ const AddGroupUser = ({hostname}) => {
 
     const fetchUsers = useCallback(async () => {
         try {
-            const response = await Axios.get(`${hostname}/USER`);
+            const response = await Axios.get(`${hostname}/USER`,{
+                headers: {
+                  'ngrok-skip-browser-warning': 'skip-browser-warning'
+                }
+            });
             setUsers(response.data);
         } catch (error) {
             console.error('Error fetching users:', error);

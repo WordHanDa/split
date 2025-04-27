@@ -14,7 +14,12 @@ const EditGroup = ({hostname}) => {
     // 將 fetchGroups 改為使用 useCallback
     const fetchGroups = useCallback(async () => {
         try {
-            const response = await Axios.get(`${hostname}/GROUP`);
+            const response = await Axios.get(`${hostname}/GROUP`,{
+                headers: {
+                    'ngrok-skip-browser-warning': 'skip-browser-warning',
+                },
+                timeout: 5000
+            });
             setGroups(response.data);
         } catch (error) {
             console.error("Error fetching groups:", error);

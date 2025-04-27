@@ -7,11 +7,12 @@ import UserPage from './pages/userPage';
 import BillPage from './pages/billPage';
 import ResultPage from './pages/resultPage';
 import GroupUserPage from './pages/groupUserPage';
+import TestPage from './pages/testPage';
 import Cookies from 'js-cookie';
 import './mobile-menu.css';
 import './components/css/common.css';
 
-const hostname = "http://localhost:3002";
+const hostname = "https://3bbd-2001-b011-300c-9f27-acfe-68c-5549-bb8d.ngrok-free.app";
 
 const App = () => {
     const [selectedGroup, setSelectedGroup] = useState(null);
@@ -108,6 +109,8 @@ const App = () => {
                         <Route path="/rate" element={<RatePage hostname={hostname}/>} />
                         <Route path="/bill" element={<BillPage hostname={hostname}/>} />
                         <Route path="/result" element={<ResultPage hostname={hostname}/>} />
+                        <Route path="/test" element={<TestPage hostname={hostname}/>} />
+                        {/* Default route */}
                         <Route path="/" element={<GroupPage hostname={hostname} onGroupSelect={handleGroupSelect}/>} />
                     </Routes>
                 </div>

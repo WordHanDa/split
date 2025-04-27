@@ -20,52 +20,56 @@ const EditRate = ({hostname}) => {
         users: `${hostname}/getUsersByGroupId`,
         userRates: `${hostname}/YOUR_RATE/user`,
         updateRate: `${hostname}/updateRate`
-    }), [hostname]);
-
-    // 使用 useCallback 記憶化 fetchUsers
-    const fetchUsers = useCallback(async (gid) => {
+      }), [hostname]);
+      
+      // 使用 useCallback 記憶化 fetchUsers
+      const fetchUsers = useCallback(async (gid) => {
         try {
-            const response = await Axios.get(apiUrls.users, {
-                params: { group_id: gid }
-            });
-            setUsers(response.data);
+          const response = await Axios.get(apiUrls.users, {
+            headers: {
+              'ngrok-skip-browser-warning': 'skip-browser-warning'
+            },
+            params: { group_id: gid }
+          });
+          setUsers(response.data);
         } catch (error) {
-            console.error("Error fetching users:", error);
-            toast.error("無法取得使用者列表");
+          console.error("Error fetching users:", error);
+          toast.error("無法取得使用者列表");
         }
-    }, [apiUrls]);
-
-    // 使用 useCallback 記憶化 fetchUserRates
-    const fetchUserRates = useCallback(async (uid) => {
+      }, [apiUrls]);
+      
+      // 使用 useCallback 記憶化 fetchUserRates
+      const fetchUserRates = useCallback(async (uid) => {
         try {
-            setLoading(true);
-            const response = await Axios.get(apiUrls.userRates, {
-                params: { user_id: uid }
-            });
-            
-            if (response.data.success) {
-                if (response.data.rates?.length > 0) {
-                    setUserRates(response.data.rates);
-                } else {
-                    setUserRates([]);
-                    toast.info("此使用者尚未設定匯率");
-                }
+          setLoading(true);
+          const response = await Axios.get(apiUrls.userRates, {
+            headers: {
+              'ngrok-skip-browser-warning': 'skip-browser-warning'
+            },
+            params: { user_id: uid }
+          });
+          if (response.data.success) {
+            if (response.data.rates?.length > 0) {
+              setUserRates(response.data.rates);
             } else {
-                setUserRates([]);
-                toast.error("取得匯率資料失敗");
+              setUserRates([]);
+              toast.info("此使用者尚未設定匯率");
             }
-            
-            setSelectedRate(null);
-            setJPY("");
-            setNTD("");
-        } catch (error) {
-            console.error("Error fetching user rates:", error);
-            toast.error("無法取得使用者匯率資料");
+          } else {
             setUserRates([]);
+            toast.error("取得匯率資料失敗");
+          }
+          setSelectedRate(null);
+          setJPY("");
+          setNTD("");
+        } catch (error) {
+          console.error("Error fetching user rates:", error);
+          toast.error("無法取得使用者匯率資料");
+          setUserRates([]);
         } finally {
-            setLoading(false);
+          setLoading(false);
         }
-    }, [apiUrls]);
+      }, [apiUrls]);
 
     useEffect(() => {
         const savedGroup = Cookies.get('selectedGroup');

@@ -31,6 +31,13 @@ const AddBill = ({hostname}) => {
     // 記憶化 API 基礎 URL
     const apiBaseUrl = useMemo(() => hostname, [hostname]);
 
+    // 記憶化 Axios 設定
+    const axiosConfig = useMemo(() => ({
+        headers: {
+            'ngrok-skip-browser-warning': 'skip-browser-warning'
+        }
+    }), []);
+
     // 使用 useCallback 來記憶化驗證功能
     const validateItemsTotal = useCallback((items) => {
         if (!items) return false;
@@ -84,6 +91,7 @@ const AddBill = ({hostname}) => {
 
                 // Get users list for the group
                 Axios.get(`${apiBaseUrl}/getUsersByGroupId`, {
+                    ...axiosConfig,
                     params: { group_id: parsedGroup.group_id }
                 })
                 .then(response => {
@@ -98,7 +106,7 @@ const AddBill = ({hostname}) => {
                 showMessage("Error loading group data", "error");
             }
         }
-    }, [showMessage, apiBaseUrl]);
+    }, [showMessage, apiBaseUrl, axiosConfig]);
 
     // Handle method selection change
     const handleMethodChange = (e) => {
@@ -133,7 +141,7 @@ const AddBill = ({hostname}) => {
             rate_id: rateId,
             credit_card: billData.creditCard ? 1 : 0,
             your_rate_id: yourRateId
-        })
+        }, axiosConfig)
         .then((response) => {
             const newBillId = response.data.result.insertId;
             
@@ -144,7 +152,7 @@ const AddBill = ({hostname}) => {
                 Axios.post(`${apiBaseUrl}/createSplitRecord`, {
                     bill_id: newBillId,
                     percentages: splitData
-                })
+                }, axiosConfig)
                 .then(() => {
                     console.log("Split record added successfully");
                     
@@ -185,7 +193,7 @@ const AddBill = ({hostname}) => {
                 Axios.post(`${apiBaseUrl}/createItem`, {
                     bill_id: newBillId,
                     items: itemData
-                })
+                }, axiosConfig)
                 .then((response) => {
                     if (response.data.success) {
                         console.log("Item records added successfully");
@@ -241,7 +249,8 @@ const AddBill = ({hostname}) => {
         getSplitData, 
         groupId, 
         processing,
-        showMessage
+        showMessage,
+        axiosConfig
     ]);
 
     // 修改 handleAddBill
@@ -311,7 +320,7 @@ const AddBill = ({hostname}) => {
         // Process the bill based on credit card selection
         if (billData.creditCard) {
             // Get latest rate_id for credit card
-            Axios.get(`${apiBaseUrl}/RATE`)
+            Axios.get(`${apiBaseUrl}/RATE`, axiosConfig)
                 .then(response => {
                     if (response.data && response.data.length > 0) {
                         const rateId = response.data[0].rate_id;
@@ -328,6 +337,7 @@ const AddBill = ({hostname}) => {
         } else {
             // Get user's last your_rate_id
             Axios.get(`${apiBaseUrl}/YOUR_RATE`, {
+                ...axiosConfig,
                 params: { user_id: billData.userId }
             })
                 .then(response => {
@@ -352,7 +362,8 @@ const AddBill = ({hostname}) => {
         getSplitData,
         groupId,
         showMessage,
-        validateItemsTotal
+        validateItemsTotal,
+        axiosConfig
     ]);
 
     // 更新表單處理函數
@@ -365,10 +376,6 @@ const AddBill = ({hostname}) => {
 
     return (
         <div className="add-bill-container" style={{ position: 'relative' }}>
-            {/* Toast container positioned with a higher z-index */}
-            <ToastContainer/>
-
-            {/* Inputs are NOT wrapped in a form to avoid auto submission */}
             <div className="bill-inputs">
                 <input 
                     type="text" 
@@ -441,7 +448,6 @@ const AddBill = ({hostname}) => {
                 />
             )}
 
-            {/* Button explicitly set to type="button" to prevent form submission */}
             <button 
                 type="button"
                 onClick={handleAddBill}
@@ -450,6 +456,7 @@ const AddBill = ({hostname}) => {
             >
                 {processing ? "Processing..." : "ADD BILL"}
             </button>
+            <ToastContainer/>
         </div>
     );
 };

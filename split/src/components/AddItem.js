@@ -16,15 +16,19 @@ const AddItem = ({hostname, onItemComplete }) => {
     const apiUrl = useMemo(() => `${hostname}/getUsersByGroupId`, [hostname]);
 
     const fetchUsers = useCallback(async (groupId) => {
-        try {
-            const response = await Axios.get(apiUrl, {
-                params: { group_id: groupId }
-            });
-            setUsers(response.data);
-        } catch (error) {
-            console.error("Error fetching users:", error);
-            console.log("Failed to fetch users");
-        }
+      try {
+        const response = await Axios.get(apiUrl, {
+          params: { group_id: groupId },
+          headers: {
+            'ngrok-skip-browser-warning': 'skip-browser-warning',
+          },
+          timeout: 5000
+        });
+        setUsers(response.data);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        console.log("Failed to fetch users");
+      }
     }, [apiUrl]);
 
     useEffect(() => {

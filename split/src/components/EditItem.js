@@ -19,49 +19,56 @@ const EditItem = ({ hostname, billId, billAmount, onUpdate, onBillUpdate }) => {
         users: `${hostname}/getUsersByGroupId`,
         items: `${hostname}/getItems`,
         updateItem: `${hostname}/updateItem`
-    }), [hostname]);
-
-    const fetchUsers = useCallback(async (gid) => {
+      }), [hostname]);
+      
+      const fetchUsers = useCallback(async (gid) => {
         try {
-            const response = await Axios.get(apiUrls.users, {
-                params: { group_id: gid }
-            });
-            setUsers(response.data);
+          const response = await Axios.get(apiUrls.users, {
+            params: { group_id: gid },
+            headers: {
+              'ngrok-skip-browser-warning': 'skip-browser-warning',
+            },
+            timeout: 5000
+          });
+          setUsers(response.data);
         } catch (error) {
-            console.error("Error fetching users:", error);
-            toast.error("無法取得使用者列表");
+          console.error("Error fetching users:", error);
+          toast.error("無法取得使用者列表");
         }
-    }, [apiUrls]);
-
-    const fetchItems = useCallback(async (bid) => {
+      }, [apiUrls]);
+      
+      const fetchItems = useCallback(async (bid) => {
         try {
-            setLoading(true);
-            const response = await Axios.get(apiUrls.items, {
-                params: { bill_id: bid }
-            });
-            
-            if (response.data.length === 0) {
-                // If no items, start with one empty item
-                setItems([{
-                    item_amount: "",
-                    user_id: "",
-                    item_name: ""
-                }]);
-            } else {
-                setItems(response.data.map(item => ({
-                    item_id: item.item_id,
-                    item_amount: item.item_amount,
-                    user_id: item.user_id,
-                    item_name: item.item_name
-                })));
-            }
+          setLoading(true);
+          const response = await Axios.get(apiUrls.items, {
+            params: { bill_id: bid },
+            headers: {
+              'ngrok-skip-browser-warning': 'skip-browser-warning',
+            },
+            timeout: 5000
+          });
+          if (response.data.length === 0) {
+            // If no items, start with one empty item
+            setItems([{
+              item_amount: "",
+              user_id: "",
+              item_name: ""
+            }]);
+          } else {
+            setItems(response.data.map(item => ({
+              item_id: item.item_id,
+              item_amount: item.item_amount,
+              user_id: item.user_id,
+              item_name: item.item_name
+            })));
+          }
         } catch (error) {
-            console.error("Error fetching items:", error);
-            toast.error("無法取得項目資料");
+          console.error("Error fetching items:", error);
+          toast.error("無法取得項目資料");
         } finally {
-            setLoading(false);
+          setLoading(false);
         }
-    }, [apiUrls]);
+      }, [apiUrls]);
 
     useEffect(() => {
         const savedGroup = Cookies.get('selectedGroup');

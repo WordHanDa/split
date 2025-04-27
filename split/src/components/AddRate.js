@@ -16,15 +16,18 @@ const AddRate = ({hostname}) => {
     // 將獲取用戶的邏輯封裝到 useCallback 中
     const fetchUsers = useCallback(async (groupId) => {
         try {
-            const response = await Axios.get(`${hostname}/getUsersByGroupId`, {
-                params: { group_id: groupId }
-            });
-            setUsers(response.data);
+          const response = await Axios.get(`${hostname}/getUsersByGroupId`, {
+            headers: {
+              'ngrok-skip-browser-warning': 'skip-browser-warning'
+            },
+            params: { group_id: groupId }
+          });
+          setUsers(response.data);
         } catch (error) {
-            console.error("Error fetching users:", error);
-            toast.error("無法取得群組成員");
+          console.error("Error fetching users:", error);
+          toast.error("無法取得群組成員");
         }
-    }, [hostname]);
+      }, [hostname]);
 
     useEffect(() => {
         // Get selected group from cookies
@@ -59,7 +62,8 @@ const AddRate = ({hostname}) => {
             user_id: parseInt(userId, 10)
         }, {
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'skip-browser-warning'
             }
         })
         .then(() => {

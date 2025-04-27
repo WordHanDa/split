@@ -27,7 +27,8 @@ const ShowYourRate = ({hostname}) => {
                 params: { group_id: gid },
                 timeout: 5000,
                 headers: {
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'ngrok-skip-browser-warning': 'skip-browser-warning'
                 }
             });
 

@@ -19,7 +19,8 @@ const ShowRate = ({hostname}) => {
             const response = await Axios.get(apiUrl.rates, { 
                 timeout: 5000,
                 headers: {
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'ngrok-skip-browser-warning': 'skip-browser-warning'
                 }
             });
 
