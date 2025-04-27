@@ -7,9 +7,13 @@ import UserPage from './pages/userPage';
 import BillPage from './pages/billPage';
 import ResultPage from './pages/resultPage';
 import GroupUserPage from './pages/groupUserPage';
+import TestPage from './pages/testPage';
 import Cookies from 'js-cookie';
 import './mobile-menu.css';
 import './components/css/common.css';
+
+const hostname = "https://3bbd-2001-b011-300c-9f27-acfe-68c-5549-bb8d.ngrok-free.app";
+
 const App = () => {
     const [selectedGroup, setSelectedGroup] = useState(null);
     const [menuOpen, setMenuOpen] = useState(false);
@@ -99,13 +103,15 @@ const App = () => {
                 
                 <div className="main-content">
                     <Routes>
-                        <Route path="/group" element={<GroupPage onGroupSelect={handleGroupSelect}/>} />
-                        <Route path="/groupUser" element={<GroupUserPage />} />
-                        <Route path="/user" element={<UserPage />} />
-                        <Route path="/rate" element={<RatePage />} />
-                        <Route path="/bill" element={<BillPage />} />
-                        <Route path="/result" element={<ResultPage />} />
-                        <Route path="/" element={<GroupPage onGroupSelect={handleGroupSelect}/>} />
+                        <Route path="/group" element={<GroupPage hostname={hostname} onGroupSelect={handleGroupSelect} />} />
+                        <Route path="/groupUser" element={<GroupUserPage hostname={hostname}/>} />
+                        <Route path="/user" element={<UserPage hostname={hostname}/>} />
+                        <Route path="/rate" element={<RatePage hostname={hostname}/>} />
+                        <Route path="/bill" element={<BillPage hostname={hostname}/>} />
+                        <Route path="/result" element={<ResultPage hostname={hostname}/>} />
+                        <Route path="/test" element={<TestPage hostname={hostname}/>} />
+                        {/* Default route */}
+                        <Route path="/" element={<GroupPage hostname={hostname} onGroupSelect={handleGroupSelect}/>} />
                     </Routes>
                 </div>
             </div>

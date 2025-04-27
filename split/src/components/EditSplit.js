@@ -1,58 +1,116 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Axios from 'axios';
 import { toast } from 'react-toastify';
 import './css/bill.css';
 
-const hostname = "http://120.126.16.21:3002";
+// 更新 useSplitApi hook
+const useSplitApi = (hostname) => {
+    const apiUrls = useMemo(() => ({
+      users: `${hostname}/getUsersByGroupId`,
+      splitRecords: `${hostname}/getSplitRecords`,
+      updateSplit: `${hostname}/updateSplitRecord`
+    }), [hostname]);
+  
+    const fetchUsers = useCallback(async (groupId) => {
+      try {
+        const response = await Axios.get(apiUrls.users, {
+          params: { group_id: groupId },
+          headers: {
+            'ngrok-skip-browser-warning': 'skip-browser-warning',
+          },
+          timeout: 5000
+        });
+        return response.data;
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        throw error;
+      }
+    }, [apiUrls]);
+  
+    const fetchSplitRecords = useCallback(async (billId) => {
+      try {
+        const response = await Axios.get(apiUrls.splitRecords, {
+          params: { bill_id: billId },
+          headers: {
+            'ngrok-skip-browser-warning': 'skip-browser-warning',
+          },
+          timeout: 5000
+        });
+        return response.data;
+      } catch (error) {
+        console.error("Error fetching split records:", error);
+        throw error;
+      }
+    }, [apiUrls]);
+  
+    const updateSplitRecord = useCallback(async (billId, percentages) => {
+      try {
+        const response = await Axios.put(apiUrls.updateSplit, {
+          bill_id: billId,
+          percentages
+        }, {
+          headers: {
+            'ngrok-skip-browser-warning': 'skip-browser-warning',
+          },
+          timeout: 5000
+        });
+        return response.data;
+      } catch (error) {
+        console.error("Error updating split records:", error);
+        throw error;
+      }
+    }, [apiUrls]);
+  
+    return {
+      fetchUsers,
+      fetchSplitRecords,
+      updateSplitRecord
+    };
+  };
 
-const EditSplit = ({ billId, groupId, onUpdate }) => {
+// 更新 EditSplit 組件
+const EditSplit = ({ hostname, billId, groupId, onUpdate }) => {
     const [users, setUsers] = useState([]);
     const [percentages, setPercentages] = useState({});
     const [loading, setLoading] = useState(false);
 
-    // Move fetchUsers to useCallback
-    const fetchUsers = useCallback(async () => {
+    const { fetchUsers, fetchSplitRecords, updateSplitRecord } = useSplitApi(hostname);
+
+    // 更新 fetch 相關的函數
+    const loadUsers = useCallback(async () => {
         try {
-            const response = await Axios.get(`${hostname}/getUsersByGroupId`, {
-                params: { group_id: groupId }
-            });
-            setUsers(response.data);
+            const data = await fetchUsers(groupId);
+            setUsers(data);
         } catch (error) {
-            console.error("Error fetching users:", error);
             toast.error("無法取得使用者列表");
         }
-    }, [groupId]);
+    }, [fetchUsers, groupId]);
 
-    // Move fetchSplitRecords to useCallback
-    const fetchSplitRecords = useCallback(async () => {
+    const loadSplitRecords = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await Axios.get(`${hostname}/getSplitRecords`, {
-                params: { bill_id: billId }
-            });
-            
+            const data = await fetchSplitRecords(billId);
             const percentageData = {};
-            response.data.forEach(record => {
+            data.forEach(record => {
                 percentageData[record.user_id] = record.percentage;
             });
             setPercentages(percentageData);
         } catch (error) {
-            console.error("Error fetching split records:", error);
             toast.error("無法取得分帳記錄");
         } finally {
             setLoading(false);
         }
-    }, [billId]);
+    }, [fetchSplitRecords, billId]);
 
-    // Update useEffect with the memoized functions
+    // 更新 useEffect
     useEffect(() => {
         if (groupId) {
-            fetchUsers();
+            loadUsers();
         }
         if (billId) {
-            fetchSplitRecords();
+            loadSplitRecords();
         }
-    }, [groupId, billId, fetchUsers, fetchSplitRecords]);
+    }, [groupId, billId, loadUsers, loadSplitRecords]);
 
     const handlePercentageChange = (userId, value) => {
         const inputValue = Number(parseFloat(value || 0).toFixed(2));
@@ -143,20 +201,16 @@ const EditSplit = ({ billId, groupId, onUpdate }) => {
 
         try {
             setLoading(true);
-            const response = await Axios.put(`${hostname}/updateSplitRecord`, {
-                bill_id: billId,
-                percentages
-            });
+            const response = await updateSplitRecord(billId, percentages);
 
-            if (response.data.success) {
+            if (response.success) {
                 toast.success("分帳比例更新成功");
                 if (onUpdate) {
                     onUpdate();
                 }
             }
         } catch (error) {
-            console.error("Error updating split records:", error);
-            toast.error(error.response?.data?.message || "更新失敗");
+            toast.error(error.message || "更新失敗");
         } finally {
             setLoading(false);
         }

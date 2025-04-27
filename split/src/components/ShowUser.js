@@ -2,18 +2,21 @@ import { useState } from "react";
 import Axios from "axios";
 import './css/user.css';
 
-let hostname = "http://120.126.16.21:3002";
-
-const ShowUser = () => {  // ✅ Ensure the function starts with an uppercase letter
+const ShowUser = ({hostname}) => {  // ✅ Ensure the function starts with an uppercase letter
     const [userList, setUserList] = useState([]);
 
     const getUser = () => {
-        Axios.get(hostname + "/USER", { timeout: 5000 })
-          .then((response) => {
-            console.log(response.data);
-            setUserList(response.data);
-          })
-          .catch((error) => console.error("Error fetching data:", error));
+        Axios.get(hostname + "/USER", { 
+            headers: {
+                'ngrok-skip-browser-warning': 'skip-browser-warning',
+            }
+            ,timeout: 5000 
+            })
+            .then((response) => {
+                console.log(response.data);
+                setUserList(response.data);
+            })
+        .catch((error) => console.error("Error fetching data:", error));
     };
 
     return (

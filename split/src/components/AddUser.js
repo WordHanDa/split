@@ -4,9 +4,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './css/user.css';
 
-const hostname = "http://120.126.16.21:3002";
-
-const AddUser = ({ onUserAdded }) => {
+const AddUser = ({hostname, onUserAdded }) => {
     const [userName, setUserName] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
@@ -22,7 +20,8 @@ const AddUser = ({ onUserAdded }) => {
                 name: userName,
             }, {
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'skip-browser-warning',
                 }
             });
 

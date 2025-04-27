@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Axios from 'axios';
 import { toast } from 'react-toastify';
@@ -6,14 +6,26 @@ import Cookies from 'js-cookie';
 import 'react-toastify/dist/ReactToastify.css';
 import './css/groupUser.css';
 
-const hostname = "http://120.126.16.21:3002";
-
-const AddGroupUser = () => {
+const AddGroupUser = ({hostname}) => {
     const [users, setUsers] = useState([]);
     const [selectedUser, setSelectedUser] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [selectedGroup, setSelectedGroup] = useState(null);
     const navigate = useNavigate();
+
+    const fetchUsers = useCallback(async () => {
+        try {
+            const response = await Axios.get(`${hostname}/USER`,{
+                headers: {
+                  'ngrok-skip-browser-warning': 'skip-browser-warning'
+                }
+            });
+            setUsers(response.data);
+        } catch (error) {
+            console.error('Error fetching users:', error);
+            toast.error('無法取得使用者列表');
+        }
+    }, [hostname]);
 
     useEffect(() => {
         const savedGroup = Cookies.get('selectedGroup');
@@ -31,17 +43,7 @@ const AddGroupUser = () => {
             toast.error('請先選擇群組');
             navigate('/groups');
         }
-    }, [navigate]);
-
-    const fetchUsers = async () => {
-        try {
-            const response = await Axios.get(`${hostname}/USER`);
-            setUsers(response.data);
-        } catch (error) {
-            console.error('Error fetching users:', error);
-            toast.error('無法取得使用者列表');
-        }
-    };
+    }, [navigate, fetchUsers]);
 
     const handleAddUserToGroup = async (userId) => {
         if (!selectedGroup || !userId) return;

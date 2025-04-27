@@ -1,14 +1,12 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import Axios from "axios";
 import Cookies from "js-cookie";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './css/bill.css';
 
-const hostname = "http://120.126.16.21:3002";
-
 // Modify the component definition to accept billAmount prop
-const EditItem = ({ billId, billAmount, onUpdate, onBillUpdate }) => {
+const EditItem = ({ hostname, billId, billAmount, onUpdate, onBillUpdate }) => {
     const [items, setItems] = useState([{
         item_amount: "",
         user_id: "",
@@ -16,6 +14,61 @@ const EditItem = ({ billId, billAmount, onUpdate, onBillUpdate }) => {
     }]);
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
+
+    const apiUrls = useMemo(() => ({
+        users: `${hostname}/getUsersByGroupId`,
+        items: `${hostname}/getItems`,
+        updateItem: `${hostname}/updateItem`
+      }), [hostname]);
+      
+      const fetchUsers = useCallback(async (gid) => {
+        try {
+          const response = await Axios.get(apiUrls.users, {
+            params: { group_id: gid },
+            headers: {
+              'ngrok-skip-browser-warning': 'skip-browser-warning',
+            },
+            timeout: 5000
+          });
+          setUsers(response.data);
+        } catch (error) {
+          console.error("Error fetching users:", error);
+          toast.error("無法取得使用者列表");
+        }
+      }, [apiUrls]);
+      
+      const fetchItems = useCallback(async (bid) => {
+        try {
+          setLoading(true);
+          const response = await Axios.get(apiUrls.items, {
+            params: { bill_id: bid },
+            headers: {
+              'ngrok-skip-browser-warning': 'skip-browser-warning',
+            },
+            timeout: 5000
+          });
+          if (response.data.length === 0) {
+            // If no items, start with one empty item
+            setItems([{
+              item_amount: "",
+              user_id: "",
+              item_name: ""
+            }]);
+          } else {
+            setItems(response.data.map(item => ({
+              item_id: item.item_id,
+              item_amount: item.item_amount,
+              user_id: item.user_id,
+              item_name: item.item_name
+            })));
+          }
+        } catch (error) {
+          console.error("Error fetching items:", error);
+          toast.error("無法取得項目資料");
+        } finally {
+          setLoading(false);
+        }
+      }, [apiUrls]);
 
     useEffect(() => {
         const savedGroup = Cookies.get('selectedGroup');
@@ -31,49 +84,7 @@ const EditItem = ({ billId, billAmount, onUpdate, onBillUpdate }) => {
                 toast.error("群組資料載入失敗");
             }
         }
-    }, [billId]);
-
-    const fetchUsers = async (gid) => {
-        try {
-            const response = await Axios.get(`${hostname}/getUsersByGroupId`, {
-                params: { group_id: gid }
-            });
-            setUsers(response.data);
-        } catch (error) {
-            console.error("Error fetching users:", error);
-            toast.error("無法取得使用者列表");
-        }
-    };
-
-    const fetchItems = async (bid) => {
-        try {
-            setLoading(true);
-            const response = await Axios.get(`${hostname}/getItems`, {
-                params: { bill_id: bid }
-            });
-            
-            if (response.data.length === 0) {
-                // If no items, start with one empty item
-                setItems([{
-                    item_amount: "",
-                    user_id: "",
-                    item_name: ""
-                }]);
-            } else {
-                setItems(response.data.map(item => ({
-                    item_id: item.item_id,
-                    item_amount: item.item_amount,
-                    user_id: item.user_id,
-                    item_name: item.item_name
-                })));
-            }
-        } catch (error) {
-            console.error("Error fetching items:", error);
-            toast.error("無法取得項目資料");
-        } finally {
-            setLoading(false);
-        }
-    };
+    }, [billId, fetchUsers, fetchItems]);
 
     const handleItemChange = (index, field, value) => {
         const newItems = [...items];
@@ -133,7 +144,7 @@ const EditItem = ({ billId, billAmount, onUpdate, onBillUpdate }) => {
             await onBillUpdate();
             
             // Then update the items
-            const response = await Axios.put(`${hostname}/updateItem`, {
+            const response = await Axios.put(apiUrls.updateItem, {
                 bill_id: billId,
                 items: items.map(item => ({
                     ...item,

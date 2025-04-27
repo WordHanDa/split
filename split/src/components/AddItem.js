@@ -1,12 +1,10 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import Axios from "axios";
 import Cookies from "js-cookie";
 import 'react-toastify/dist/ReactToastify.css';
 import './css/bill.css';
 
-let hostname = "http://120.126.16.21:3002";
-
-const AddItem = ({ onItemComplete }) => {
+const AddItem = ({hostname, onItemComplete }) => {
     const [items, setItems] = useState([{
         item_amount: "",
         userId: "",
@@ -14,29 +12,37 @@ const AddItem = ({ onItemComplete }) => {
     }]);
     const [users, setUsers] = useState([]);
 
+    // 記憶化 API URL
+    const apiUrl = useMemo(() => `${hostname}/getUsersByGroupId`, [hostname]);
+
+    const fetchUsers = useCallback(async (groupId) => {
+      try {
+        const response = await Axios.get(apiUrl, {
+          params: { group_id: groupId },
+          headers: {
+            'ngrok-skip-browser-warning': 'skip-browser-warning',
+          },
+          timeout: 5000
+        });
+        setUsers(response.data);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        console.log("Failed to fetch users");
+      }
+    }, [apiUrl]);
+
     useEffect(() => {
         const savedGroup = Cookies.get('selectedGroup');
         if (savedGroup) {
             try {
                 const parsedGroup = JSON.parse(savedGroup);
-
-                Axios.get(`${hostname}/getUsersByGroupId`, {
-                    params: { group_id: parsedGroup.group_id }
-                })
-                .then(response => {
-                    setUsers(response.data);
-                })
-                .catch(error => {
-                    console.error("Error fetching users:", error);
-                    // Use the same toast mechanism as the parent component
-                    console.log("Failed to fetch users");
-                });
+                fetchUsers(parsedGroup.group_id);
             } catch (error) {
                 console.error("Error parsing saved group from cookies:", error);
                 console.log("Error loading group data");
             }
         }
-    }, []);
+    }, [fetchUsers]); // 現在依賴於 fetchUsers，而 fetchUsers 依賴於 apiUrl
 
     // Move validateItems outside of useEffect and memoize it with useCallback
     const validateItems = useCallback(() => {

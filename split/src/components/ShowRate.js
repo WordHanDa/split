@@ -1,29 +1,46 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import Axios from "axios";
+import { toast } from 'react-toastify';
 import './css/rate.css';
 
-let hostname = "http://120.126.16.21:3002";
-
-const ShowRate = () => {
+const ShowRate = ({hostname}) => {
     const [rateList, setRateList] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const getRate = async () => {
+    // 記憶化 API URL
+    const apiUrl = useMemo(() => ({
+        rates: `${hostname}/RATE`
+    }), [hostname]);
+
+    // 使用 useCallback 記憶化 getRate 函數
+    const getRate = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await Axios.get(`${hostname}/RATE`, { timeout: 5000 });
-            setRateList(response.data);
+            const response = await Axios.get(apiUrl.rates, { 
+                timeout: 5000,
+                headers: {
+                    'Accept': 'application/json',
+                    'ngrok-skip-browser-warning': 'skip-browser-warning'
+                }
+            });
+
+            if (Array.isArray(response.data)) {
+                setRateList(response.data);
+            } else {
+                throw new Error('回應格式錯誤');
+            }
         } catch (error) {
-            console.error("Error fetching data:", error);
+            console.error("取得匯率資料失敗:", error);
+            toast.error(error.message || "無法取得匯率資料");
         } finally {
             setLoading(false);
         }
-    };
+    }, [apiUrl]);
 
-    // Fetch rates on component mount
+    // 更新 useEffect 的依賴
     useEffect(() => {
         getRate();
-    }, []);
+    }, [getRate]);
 
     return (
         <div className="rate-container">

@@ -4,32 +4,34 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './css/group.css';
 
-let hostname = "http://120.126.16.21:3002";
-
-const AddGroup = () => {
+const AddGroup = ({hostname}) => {
     const [groupName, setGroupName] = useState("");
 
     const add = () => {
-        if (!groupName.trim()) {
-            toast.error("Group name cannot be empty");
-            return;
-        }
-        Axios.post(hostname + "/createGroup", {  
-          name: groupName,
-        }, {
+      if (!groupName.trim()) {
+        toast.error("Group name cannot be empty");
+        return;
+      }
+      
+      Axios.post(
+        hostname + "/createGroup", 
+        { name: groupName }, // Request body (data)
+        {
           headers: {
+            'ngrok-skip-browser-warning': 'skip-browser-warning',
             'Content-Type': 'application/json'
           }
-        })
-        .then(() => {
-          console.log("Group added successfully");
-          setGroupName("");  // Clear input after submission
-          toast.success("Group added successfully!");  // Show success notification
-        })
-        .catch((error) => {
-          console.error("Error adding group:", error);
-          toast.error("Error adding group");  // Show error notification
-        });
+        }
+      )
+      .then(() => {
+        console.log("Group added successfully");
+        setGroupName(""); // Clear input after submission
+        toast.success("Group added successfully!"); // Show success notification
+      })
+      .catch((error) => {
+        console.error("Error adding group:", error);
+        toast.error("Error adding group"); // Show error notification
+      });
     };
 
     return (

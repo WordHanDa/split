@@ -1,17 +1,38 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import Axios from "axios";
 import { ToastContainer, toast } from 'react-toastify';
 import Cookies from 'js-cookie';
 import 'react-toastify/dist/ReactToastify.css';
 import './css/groupUser.css';
 
-const hostname = "http://120.126.16.21:3002";
-
-const EditGroupUser = () => {
+const EditGroupUser = ({hostname}) => {
     const [users, setUsers] = useState([]);
     const [selectedUser, setSelectedUser] = useState('');
     const [loading, setLoading] = useState(false);
     const [groupId, setGroupId] = useState(null);
+
+    const apiUrl = useMemo(() => ({
+        getUsers: `${hostname}/getUsersByGroupId`,
+        removeUser: `${hostname}/removeGroupUser`
+      }), [hostname]);
+      
+      const fetchGroupUsers = useCallback(async (gid) => {
+        try {
+          setLoading(true);
+          const response = await Axios.get(apiUrl.getUsers, {
+            headers: {
+              'ngrok-skip-browser-warning': 'skip-browser-warning'
+            },
+            params: { group_id: gid }
+          });
+          setUsers(response.data);
+        } catch (error) {
+          console.error("Error fetching group users:", error);
+          toast.error("無法取得群組成員");
+        } finally {
+          setLoading(false);
+        }
+      }, [apiUrl]);
 
     useEffect(() => {
         const savedGroup = Cookies.get('selectedGroup');
@@ -27,22 +48,7 @@ const EditGroupUser = () => {
         } else {
             toast.error("請先選擇群組");
         }
-    }, []);
-
-    const fetchGroupUsers = async (gid) => {
-        try {
-            setLoading(true);
-            const response = await Axios.get(`${hostname}/getUsersByGroupId`, {
-                params: { group_id: gid }
-            });
-            setUsers(response.data);
-        } catch (error) {
-            console.error("Error fetching group users:", error);
-            toast.error("無法取得群組成員");
-        } finally {
-            setLoading(false);
-        }
-    };
+    }, [fetchGroupUsers]);
 
     const handleDeleteUser = async () => {
         if (!selectedUser) {
@@ -50,7 +56,6 @@ const EditGroupUser = () => {
             return;
         }
 
-        // Find the user name for confirmation message
         const userToDelete = users.find(user => user.user_id === parseInt(selectedUser));
         if (!userToDelete) return;
 
@@ -60,7 +65,7 @@ const EditGroupUser = () => {
 
         setLoading(true);
         try {
-            const response = await Axios.delete(`${hostname}/removeGroupUser`, {
+            const response = await Axios.delete(apiUrl.removeUser, {
                 data: {
                     group_id: groupId,
                     user_id: selectedUser

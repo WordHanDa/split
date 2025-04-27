@@ -1,17 +1,50 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Axios from 'axios';
 import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
 import './css/rate.css';
 
-let hostname = "http://120.126.16.21:3002";
-
-const ShowYourRate = () => {
+const ShowYourRate = ({hostname}) => {
     const [rateList, setRateList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [groupId, setGroupId] = useState(null);
 
-    // Load group ID from cookies on mount
+    // 記憶化 API URL
+    const apiUrls = useMemo(() => ({
+        latestRates: `${hostname}/YOUR_RATE/latest`
+    }), [hostname]);
+
+    // 使用 useCallback 記憶化 fetchRates 函數
+    const fetchRates = useCallback(async (gid) => {
+        if (!gid) {
+            setLoading(false);
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const response = await Axios.get(apiUrls.latestRates, {
+                params: { group_id: gid },
+                timeout: 5000,
+                headers: {
+                    'Accept': 'application/json',
+                    'ngrok-skip-browser-warning': 'skip-browser-warning'
+                }
+            });
+
+            setRateList(response.data);
+            if (response.data.length === 0) {
+                toast.info("此群組尚無匯率資料");
+            }
+        } catch (error) {
+            console.error("取得匯率資料失敗:", error);
+            toast.error("無法取得匯率資料");
+        } finally {
+            setLoading(false);
+        }
+    }, [apiUrls]);
+
+    // 分開處理群組 ID 的載入
     useEffect(() => {
         const savedGroup = Cookies.get('selectedGroup');
         if (savedGroup) {
@@ -19,40 +52,18 @@ const ShowYourRate = () => {
                 const parsedGroup = JSON.parse(savedGroup);
                 setGroupId(parsedGroup.group_id);
             } catch (error) {
-                console.error("Error parsing saved group:", error);
-                toast.error("Error loading group data");
+                console.error("群組資料解析失敗:", error);
+                toast.error("群組資料載入失敗");
             }
         }
     }, []);
 
-    // Fetch rates when groupId is available
+    // 當 groupId 或 fetchRates 更新時重新取得資料
     useEffect(() => {
-        if (!groupId) {
-            setLoading(false);
-            return;
+        if (groupId) {
+            fetchRates(groupId);
         }
-
-        const fetchRates = async () => {
-            try {
-                setLoading(true);
-                const response = await Axios.get(`${hostname}/YOUR_RATE/latest`, {
-                    params: { group_id: groupId },
-                    timeout: 5000
-                });
-                setRateList(response.data);
-                if (response.data.length === 0) {
-                    toast.info("No rates found for this group");
-                }
-            } catch (error) {
-                console.error("Error fetching rates:", error);
-                toast.error("Failed to fetch rates");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchRates();
-    }, [groupId]);
+    }, [groupId, fetchRates]);
 
     return (
         <div className="show-rate-container">
@@ -68,7 +79,7 @@ const ShowYourRate = () => {
                                 <li key={index} className="rate-item">
                                     <span className="user-name">{rate.user_name}</span>
                                     <span className="rate-values">
-                                        JPY: {rate.JPY} | NTD: {rate.NTD} Rate: {rate.JPY / rate.NTD}
+                                        JPY: {rate.JPY} | NTD: {rate.NTD} Rate: {rate.JPY / rate.NTD/100}
                                     </span>
                                 </li>
                             ))}

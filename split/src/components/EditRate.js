@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import Cookies from 'js-cookie';
 import 'react-toastify/dist/ReactToastify.css';
 import './css/rate.css';
 
-const hostname = "http://120.126.16.21:3002";
-
-const EditRate = () => {
+const EditRate = ({hostname}) => {
     const [selectedRate, setSelectedRate] = useState(null);
     const [JPY, setJPY] = useState("");
     const [NTD, setNTD] = useState("");
@@ -16,6 +14,62 @@ const EditRate = () => {
     const [groupId, setGroupId] = useState(null);
     const [loading, setLoading] = useState(false);
     const [userRates, setUserRates] = useState([]);
+
+    // 記憶化 API URLs
+    const apiUrls = useMemo(() => ({
+        users: `${hostname}/getUsersByGroupId`,
+        userRates: `${hostname}/YOUR_RATE/user`,
+        updateRate: `${hostname}/updateRate`
+      }), [hostname]);
+      
+      // 使用 useCallback 記憶化 fetchUsers
+      const fetchUsers = useCallback(async (gid) => {
+        try {
+          const response = await Axios.get(apiUrls.users, {
+            headers: {
+              'ngrok-skip-browser-warning': 'skip-browser-warning'
+            },
+            params: { group_id: gid }
+          });
+          setUsers(response.data);
+        } catch (error) {
+          console.error("Error fetching users:", error);
+          toast.error("無法取得使用者列表");
+        }
+      }, [apiUrls]);
+      
+      // 使用 useCallback 記憶化 fetchUserRates
+      const fetchUserRates = useCallback(async (uid) => {
+        try {
+          setLoading(true);
+          const response = await Axios.get(apiUrls.userRates, {
+            headers: {
+              'ngrok-skip-browser-warning': 'skip-browser-warning'
+            },
+            params: { user_id: uid }
+          });
+          if (response.data.success) {
+            if (response.data.rates?.length > 0) {
+              setUserRates(response.data.rates);
+            } else {
+              setUserRates([]);
+              toast.info("此使用者尚未設定匯率");
+            }
+          } else {
+            setUserRates([]);
+            toast.error("取得匯率資料失敗");
+          }
+          setSelectedRate(null);
+          setJPY("");
+          setNTD("");
+        } catch (error) {
+          console.error("Error fetching user rates:", error);
+          toast.error("無法取得使用者匯率資料");
+          setUserRates([]);
+        } finally {
+          setLoading(false);
+        }
+      }, [apiUrls]);
 
     useEffect(() => {
         const savedGroup = Cookies.get('selectedGroup');
@@ -31,50 +85,7 @@ const EditRate = () => {
         } else {
             toast.error("請先選擇群組");
         }
-    }, []);
-
-    const fetchUsers = async (gid) => {
-        try {
-            const response = await Axios.get(`${hostname}/getUsersByGroupId`, {
-                params: { group_id: gid }
-            });
-            setUsers(response.data);
-        } catch (error) {
-            console.error("Error fetching users:", error);
-            toast.error("無法取得使用者列表");
-        }
-    };
-
-    const fetchUserRates = async (uid) => {
-        try {
-            setLoading(true);
-            const response = await Axios.get(`${hostname}/YOUR_RATE/user`, {
-                params: { user_id: uid }
-            });
-            
-            if (response.data.success) {
-                if (response.data.rates && response.data.rates.length > 0) {
-                    setUserRates(response.data.rates);
-                } else {
-                    setUserRates([]);
-                    toast.info("此使用者尚未設定匯率");
-                }
-            } else {
-                setUserRates([]);
-                toast.error("取得匯率資料失敗");
-            }
-            
-            setSelectedRate(null);
-            setJPY("");
-            setNTD("");
-        } catch (error) {
-            console.error("Error fetching user rates:", error);
-            toast.error("無法取得使用者匯率資料");
-            setUserRates([]);
-        } finally {
-            setLoading(false);
-        }
-    };
+    }, [fetchUsers]);
 
     const handleUserSelect = (uid) => {
         setUserId(uid);
@@ -118,7 +129,7 @@ const EditRate = () => {
 
         setLoading(true);
         try {
-            const response = await Axios.put(`${hostname}/updateRate`, {
+            const response = await Axios.put(apiUrls.updateRate, {
                 id: selectedRate.your_rate_id,
                 JPY: parseFloat(JPY),
                 NTD: parseFloat(NTD),

@@ -1,10 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Axios from 'axios';
 import './css/group.css';
 
-const hostname = "http://120.126.16.21:3002";
-
-const ShowGroup = ({ onGroupSelect }) => {
+const ShowGroup = ({hostname, onGroupSelect }) => {
     const [groupList, setGroupList] = useState([]);
     const [selectedGroup, setSelectedGroup] = useState(null);
     const [error, setError] = useState("");
@@ -13,22 +11,32 @@ const ShowGroup = ({ onGroupSelect }) => {
     const [maxScroll, setMaxScroll] = useState(0);
     const listRef = useRef(null);
 
-    useEffect(() => {
-        const fetchGroups = async () => {
-            try {
-                const response = await Axios.get(`${hostname}/GROUP`, { timeout: 5000 });
-                setGroupList(response.data);
-                setError("");
-            } catch (error) {
-                console.error("Error fetching data:", error);
-                setError("Failed to fetch groups");
-            } finally {
-                setLoading(false);
-            }
-        };
+    // 記憶化 API URL
+    const apiUrl = useMemo(() => `${hostname}/GROUP`, [hostname]);
 
+    // 使用 useCallback 記憶化 fetchGroups
+    const fetchGroups = useCallback(async () => {
+        try {
+            const response = await Axios.get(apiUrl, { 
+                headers: {
+                    'ngrok-skip-browser-warning': 'skip-browser-warning',
+                    // other headers...
+                },
+                timeout: 5000 });
+            setGroupList(response.data);
+            setError("");
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            setError("Failed to fetch groups");
+        } finally {
+            setLoading(false);
+        }
+    }, [apiUrl]);
+
+    // 更新 useEffect 的依賴
+    useEffect(() => {
         fetchGroups();
-    }, []);
+    }, [fetchGroups]);
 
     // Calculate item sizes and positions
     useEffect(() => {

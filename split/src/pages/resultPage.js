@@ -3,11 +3,11 @@ import ShowResult from '../components/ShowResult';
 import '../components/css/result.css';
 
 
-const ResultPage = () => {
+const ResultPage = ({hostname}) => {
     return (
         <div className="page-container">
             <h1>Result</h1>
-            <ShowResult />
+            <ShowResult hostname={hostname}/>
         </div>
     );
 };
