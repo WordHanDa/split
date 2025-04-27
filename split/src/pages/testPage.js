@@ -1,11 +1,6 @@
 import React from 'react';
-import ShowUser from '../components/ShowUser';
-import ShowRate from '../components/ShowRate';
-import ShowYourRate from '../components/ShowYourRate';
-import AddRate from '../components/AddRate';
 import AddBill from '../components/AddBill';
-import Cookies from 'js-cookie';
-import EditRate from '../components/EditRate';
+
 
 const TestPage = ({hostname}) => {
     return (
