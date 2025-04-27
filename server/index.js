@@ -13,23 +13,7 @@ const db = mysql.createConnection({
     database: "split_test",
     port: 3306,
 });
-// Replace the current SSL options code
-var https = require('https');
-var fs = require('fs');
-var options;
 
-// Try to load SSL certificates if available
-try {
-    options = {
-        key: fs.readFileSync('/Users/macbookpro/key.pem'),
-        cert: fs.readFileSync('/Users/macbookpro/cert.pem')
-    };
-    console.log('SSL certificates loaded successfully. HTTPS mode enabled.');
-} catch (err) {
-  console.log('SSL certificates not found or not accessible:', err.message);
-  console.log('Starting in HTTP mode instead...');
-  options = null;
-}
 db.connect((err) => {
     if (err) {
         console.error('Database connection failed:', err);
@@ -1995,17 +1979,7 @@ app.put('/updateSplitRecord', (req, res) => {
         });
     }
 });
-// Replace the current server startup code
-if (!options) {
-    // Start HTTPS server if certificates are available
-    const server = https.createServer(options, app);
-    server.listen(3002, '0.0.0.0', () => {
-      console.log('OK, HTTPS server is running on port 3002');
-    });
-} else {
-// Fallback to HTTP if no certificates
-    app.listen(3002, '0.0.0.0', () => {
-    console.log('OK, HTTP server is running on port 3002');
-    console.log('NOTE: Running in insecure HTTP mode. Generate SSL certificates for HTTPS.');
-    });
-}
+
+app.listen(3002, () => {
+    console.log('OK, server is running on port 3002');
+});
