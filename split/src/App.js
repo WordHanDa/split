@@ -12,7 +12,7 @@ import Cookies from 'js-cookie';
 import './mobile-menu.css';
 import './components/css/common.css';
 
-const hostname = "https://3bbd-2001-b011-300c-9f27-acfe-68c-5549-bb8d.ngrok-free.app";
+const hostname = "https://f6f2-114-32-141-80.ngrok-free.app";
 
 const App = () => {
     const [selectedGroup, setSelectedGroup] = useState(null);
