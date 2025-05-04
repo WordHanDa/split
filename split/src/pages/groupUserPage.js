@@ -11,7 +11,7 @@ const GroupUserPage = ({hostname}) => {
             
             <div className="two-column-layout">
                 <div className="component-section">
-                    <h3>Add User to Group</h3>
+                    <h3>Add Virtual User to Group</h3>
                     <div className="group-user-container">
                         <AddGroupUser hostname={hostname}/>
                     </div>

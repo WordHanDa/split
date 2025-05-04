@@ -12,7 +12,7 @@ import Cookies from 'js-cookie';
 import './mobile-menu.css';
 import './components/css/common.css';
 
-const hostname = "http://114.32.141.80:3002";
+const hostname = "http://localhost:3002";
 
 const App = () => {
     const [selectedGroup, setSelectedGroup] = useState(null);
@@ -92,6 +92,7 @@ const App = () => {
                         <Link to="/rate" onClick={handleLinkClick}>Rate</Link>
                         <Link to="/bill" onClick={handleLinkClick}>Bill</Link>
                         <Link to="/result" onClick={handleLinkClick}>Result</Link>
+                        <Link to="/test" onClick={handleLinkClick}>Test</Link>
                     </div>
                     
                     {selectedGroup && (

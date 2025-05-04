@@ -1,5 +1,6 @@
 import React from 'react';
 import AddBill from '../components/AddBill';
+import GetProfile from '../components/GetProfile';
 
 
 const TestPage = ({hostname}) => {
@@ -9,7 +10,7 @@ const TestPage = ({hostname}) => {
             <div className="component-section">
                 <h3>User Directory</h3>
                 <div className="user-page-section">
-                    <AddBill hostname={hostname}/>
+                    <GetProfile />
                 </div>
             </div>
         </div>
