@@ -24,7 +24,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://root:123456@localhost/split_test"
 db.init_app(app)
 
-# Define the GetProfile model to match your database table
 class GetProfile(db.Model):
     __tablename__ = 'GetProfile'
     
